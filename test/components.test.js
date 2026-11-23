@@ -236,7 +236,7 @@ test('image-gallery: the manifest\'s photos, packed in reading order, with sizes
   const { page, element, problems } = await open('image-gallery');
   await element.locator('li').nth(7).waitFor();
   const manifest = await (await page.request.get(`${site.url}/gallery/gallery.json`)).json();
-  const images = await element.locator('.grid img').evaluateAll((list) => list.map((img) => ({ alt: img.alt, width: img.getAttribute('width'), height: img.getAttribute('height'), src: img.src, srcset: img.getAttribute('srcset') })));
+  const images = await element.locator('.grid img:not(.placeholder)').evaluateAll((list) => list.map((img) => ({ alt: img.alt, width: img.getAttribute('width'), height: img.getAttribute('height'), src: img.src, srcset: img.getAttribute('srcset') })));
   assert.deepEqual(images.map((img) => img.alt), manifest.items.map((item) => item.alt), 'DOM order is the manifest\'s order');
   for (const img of images) {
     assert.ok(img.width && img.height, `${img.alt}: width and height, so nothing jumps`);
@@ -327,8 +327,7 @@ test('sidebar-layout and auto-grid follow the space they have, with no media que
 
 test('image-gallery: a photo whose srcset has an unsafe URL doesn\'t get one (Zubra 5.1\'s check)', async () => {
   const { page, element } = await open('image-gallery');
-  const messages = [];
-  page.on('console', (message) => messages.push(message.text()));
+  // Since Zubra 5.17 the production runtime reports nothing; the attribute is simply left off.
   await element.evaluate((el) => {
     el.src = '';
     el.items = [{ src: '/a.jpg', alt: 'Safe', width: 4, height: 3, srcset: '/a-480.webp 480w, /a-960.webp 960w' }, { src: '/b.jpg', alt: 'Unsafe', width: 4, height: 3, srcset: '/b.webp 480w, javascript:alert(1) 960w' }];
@@ -336,7 +335,6 @@ test('image-gallery: a photo whose srcset has an unsafe URL doesn\'t get one (Zu
   await element.locator('.grid img').nth(1).waitFor({ state: 'attached' });
   const sets = await element.locator('.grid img').evaluateAll((list) => list.map((img) => img.getAttribute('srcset')));
   assert.deepEqual(sets, ['/a-480.webp 480w, /a-960.webp 960w', null]);
-  assert.ok(messages.some((message) => message.includes('blocked an unsafe URL')));
   await page.close();
 });
 

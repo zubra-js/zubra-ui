@@ -62,8 +62,9 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--column, 14rem)), 1fr)); grid-auto-rows: 8px; column-gap: var(--gap, 0.75rem); margin: 0; padding: 0; list-style: none; }
   .grid > li { align-self: start; }
   figure { margin: 0; }
-  .thumb { display: block; width: 100%; padding: 0; border: 0; border-radius: var(--radius, 0.6rem); overflow: hidden; background: var(--muted, #f4f4f5) center / cover no-repeat; cursor: zoom-in; }
-  .thumb img { display: block; width: 100%; height: auto; transition: transform var(--duration-normal, 200ms); }
+  .thumb { position: relative; display: block; width: 100%; padding: 0; border: 0; border-radius: var(--radius, 0.6rem); overflow: hidden; background: var(--muted, #f4f4f5); cursor: zoom-in; }
+  .thumb img { position: relative; display: block; width: 100%; height: auto; transition: transform var(--duration-normal, 200ms); }
+  .thumb .placeholder { position: absolute; inset: 0; height: 100%; object-fit: cover; }
   .thumb:hover img { transform: scale(1.03); }
   .thumb:focus-visible { outline: 2px solid var(--primary, #18181b); outline-offset: 2px; }
   figcaption { padding: 0.35rem 0.1rem 0; color: var(--muted-foreground, #71717a); font-size: 0.875rem; }
@@ -91,7 +92,8 @@
     <zb-each items={photos} as="photo" index="i" key={photo.src}>
       <li>
         <figure>
-          <button type="button" class="thumb" aria-haspopup="dialog" style:background-image={photo.placeholder ? `url("${photo.placeholder}")` : null} onclick={() => (index = i)}>
+          <button type="button" class="thumb" aria-haspopup="dialog" onclick={() => (index = i)}>
+            <img class="placeholder" zb-if={photo.placeholder} src={url(photo.placeholder)} alt="" aria-hidden="true">
             <img src={url(photo.src)} srcset={srcset(photo.srcset)} sizes="(max-width: 40rem) 100vw, 30rem" width={photo.width} height={photo.height} alt={photo.alt ?? ""} loading="lazy" decoding="async">
           </button>
           <figcaption zb-if={photo.caption}>{photo.caption}</figcaption>
