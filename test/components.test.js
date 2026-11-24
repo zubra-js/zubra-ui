@@ -236,13 +236,16 @@ test('image-gallery: the manifest\'s photos, packed in reading order, with sizes
   const { page, element, problems } = await open('image-gallery');
   await element.locator('li').nth(7).waitFor();
   const manifest = await (await page.request.get(`${site.url}/gallery/gallery.json`)).json();
-  const images = await element.locator('.grid img:not(.placeholder)').evaluateAll((list) => list.map((img) => ({ alt: img.alt, width: img.getAttribute('width'), height: img.getAttribute('height'), src: img.src, srcset: img.getAttribute('srcset') })));
+  const images = await element.locator('.grid img').evaluateAll((list) => list.map((img) => ({ alt: img.alt, width: img.getAttribute('width'), height: img.getAttribute('height'), src: img.src, srcset: img.getAttribute('srcset') })));
   assert.deepEqual(images.map((img) => img.alt), manifest.items.map((item) => item.alt), 'DOM order is the manifest\'s order');
   for (const img of images) {
     assert.ok(img.width && img.height, `${img.alt}: width and height, so nothing jumps`);
     assert.match(img.src, /\/gallery\/[\w-]+\.jpg$/, 'relative to the manifest');
     for (const candidate of img.srcset.split(', ')) assert.match(candidate, /^http:\/\/127\.0\.0\.1:\d+\/gallery\/[\w-]+\.webp \d+w$/);
   }
+  const blurred = await element.locator('.thumb').evaluateAll((list) => list.map((thumb) => thumb.style.backgroundImage));
+  manifest.items.forEach((item, i) => assert.equal(blurred[i], item.placeholder ? `url("${item.placeholder}")` : '', `${item.alt}: its placeholder is behind it`));
+  assert.ok(manifest.items.some((item) => item.placeholder), 'the demo manifest has placeholders');
   await page.waitForFunction(() => [...document.querySelectorAll('image-gallery .grid img')].every((img) => img.complete));
   const layout = await packed(page, 'image-gallery .grid > li');
   assert.equal(layout.overlap, false);
