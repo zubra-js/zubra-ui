@@ -832,6 +832,51 @@
         "menu-bar.zb"
       ],
       "dependencies": []
+    },
+    {
+      "name": "time-field",
+      "category": "input",
+      "description": "A labelled time of day on a native <input type=\"time\">: the device's own picker and clock format, submitted as \"HH:MM\" under its `name`. `min`, `max` and `step` limit it, and it validates as the browser's own. `value` is two-way.",
+      "files": [
+        "time-field.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "split-panel",
+      "category": "layout",
+      "description": "Two panes with a bar between them to drag, across or stacked. The bar is a focusable separator: arrow keys move it, Home and End send it to its limits, and a screen reader hears its position. `position` (the first pane's percentage) is two-way.",
+      "files": [
+        "split-panel.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "color-picker",
+      "category": "input",
+      "description": "Pick any colour: a square for how vivid and bright, a slider for the hue, and a hex field. Labelled sliders do everything the square does, for the keyboard and screen readers. A form control; `value` (a hex colour) is two-way.",
+      "files": [
+        "color-picker.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "slide-carousel",
+      "category": "display",
+      "description": "A row of slides, one in view at a time, on native scrolling with snap: swipe, or use Previous, Next and the dots. Each slide is announced as \"2 of 5\". Optional `autoplay` has a pause button and stops on hover, on focus and for reduced motion. `index` is two-way.",
+      "files": [
+        "slide-carousel.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "sortable-list",
+      "category": "input",
+      "description": "A list the visitor puts in order by dragging a handle, or from the keyboard: Space picks an item up, the arrow keys move it, Space puts it down and Escape puts it back. Every step is announced. `items` is `[{ id, label }]` and is two-way.",
+      "files": [
+        "sortable-list.zb"
+      ],
+      "dependencies": []
     }
   ]
 }

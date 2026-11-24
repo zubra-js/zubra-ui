@@ -1,0 +1,74 @@
+<!--
+  Two panes with a bar between them that the visitor drags to give one more room: a file list
+  beside an editor, a preview under its source. `position` is the first pane's share of the space
+  as a percentage, kept between `min` and `max`, and is two-way. The bar is a focusable separator:
+  the arrow keys move it by `step`, Home and End send it to `min` and `max`, and a screen reader
+  hears its position. `orientation="vertical"` stacks the panes with the bar across.
+  @slot start - The first pane (left, or top).
+  @slot end - The second pane (right, or bottom).
+  @fires positionchange - The bar moved; `detail` is the first pane's percentage.
+-->
+<script lang="ts">
+  declare const orientation: "horizontal" | "vertical";
+
+  let frame = null
+  let dragging = false
+  const clamp = (number) => Math.round(Math.min(Math.max(Number(number) || 0, min), max) * 10) / 10
+  const at = clamp(position)
+  const vertical = orientation === "vertical"
+
+  function move(to) {
+    const next = clamp(to)
+    if (next !== position) position = next
+  }
+  function fromPointer(event) {
+    const box = frame.getBoundingClientRect()
+    const share = vertical ? (event.clientY - box.top) / box.height : (event.clientX - box.left) / box.width
+    const rtl = !vertical && getComputedStyle(frame).direction === "rtl"
+    move((rtl ? 1 - share : share) * 100)
+  }
+  function pressed(event) {
+    if (event.button !== 0) return
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    event.currentTarget.focus()
+    dragging = true
+  }
+  function dragged(event) {
+    if (dragging) fromPointer(event)
+  }
+  function released() {
+    dragging = false
+  }
+  function keys(event) {
+    const rtl = !vertical && getComputedStyle(frame).direction === "rtl"
+    const more = vertical ? "ArrowDown" : rtl ? "ArrowLeft" : "ArrowRight"
+    const less = vertical ? "ArrowUp" : rtl ? "ArrowRight" : "ArrowLeft"
+    if (event.key === more) move(at + step)
+    else if (event.key === less) move(at - step)
+    else if (event.key === "Home") move(min)
+    else if (event.key === "End") move(max)
+    else return
+    event.preventDefault()
+  }
+</script>
+<style>
+  :host { display: block; }
+  .split { display: grid; grid-template-columns: minmax(0, calc(var(--split) - 0.3rem)) 0.6rem minmax(0, 1fr); min-height: 12rem; height: 100%; border: 1px solid var(--border, #e4e4e7); border-radius: var(--radius, 0.625rem); background: var(--card, #fff); color: var(--card-foreground, #18181b); overflow: hidden; }
+  .split-vertical { grid-template-columns: none; grid-template-rows: minmax(0, calc(var(--split) - 0.3rem)) 0.6rem minmax(0, 1fr); }
+  .split-pane { min-width: 0; min-height: 0; overflow: auto; }
+  .split-bar { position: relative; display: grid; place-items: center; background: var(--muted, #f4f4f5); cursor: col-resize; touch-action: none; }
+  .split-vertical .split-bar { cursor: row-resize; }
+  .split-bar::before { content: ""; width: 2px; height: 1.5rem; border-radius: 1px; background: color-mix(in oklab, var(--muted-foreground, #71717a) 60%, transparent); }
+  .split-vertical .split-bar::before { width: 1.5rem; height: 2px; }
+  .split-bar:hover, .split-dragging .split-bar { background: var(--accent, #e4e4e7); }
+  .split-bar:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: -2px; }
+  .split-dragging { user-select: none; }
+</style>
+<split-panel position:model={50} min={15} max={85} step={5} orientation="horizontal" label="Resize panes">
+  <div ref={frame} class="split split-{orientation}" class:split-dragging={dragging} style:--split={`${at}%`}>
+    <div class="split-pane"><zb-slot name="start"></zb-slot></div>
+    <div class="split-bar" role="separator" tabindex="0" aria-label={label} aria-orientation={vertical ? "horizontal" : "vertical"} aria-valuemin={min} aria-valuemax={max} aria-valuenow={at} aria-valuetext={`${Math.round(at)}%`} onpointerdown={pressed} onpointermove={dragged} onpointerup={released} onpointercancel={released} onkeydown={keys}></div>
+    <div class="split-pane"><zb-slot name="end"></zb-slot></div>
+  </div>
+</split-panel>

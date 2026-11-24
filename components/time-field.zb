@@ -1,0 +1,48 @@
+<!--
+  A labelled time of day on a native <input type="time">, so the visitor gets their device's own
+  picker and their own 12- or 24-hour clock, and it submits under its `name` as "HH:MM" whatever
+  they see. `min`, `max` and `step` (in seconds; 900 is a quarter of an hour) limit it, and it
+  validates as the browser's own. The message shows after the field is left, or when the form is
+  submitted. `value` is two-way.
+  @fires valuechange - The time changed; `detail` is "HH:MM", or "" when cleared.
+-->
+<script>
+  import { id } from '@zubra/runtime'
+
+  const inputId = id()
+  const helpId = id()
+  const errorId = id()
+  let field = null
+  let message = ""
+  const shown = error || message
+
+  function check() {
+    message = field ? field.validationMessage : ""
+  }
+  function input(event) {
+    value = event.target.value
+    if (message) check()
+  }
+</script>
+<style>
+  :host { display: block; }
+  .time-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
+  label { font-weight: 600; font-size: 0.925rem; }
+  .time-optional { font-weight: 400; color: color-mix(in oklab, var(--muted-foreground, #71717a) 75%, var(--foreground, #18181b)); }
+  .time-help { margin: 0; font-size: 0.85rem; color: color-mix(in oklab, var(--muted-foreground, #71717a) 75%, var(--foreground, #18181b)); }
+  input { width: 100%; box-sizing: border-box; min-height: 2.5rem; padding: 0.5rem 0.75rem; border: 1px solid var(--input, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) - 2px); background: var(--background, #fff); color: var(--foreground, #18181b); color-scheme: inherit; font: inherit; font-variant-numeric: tabular-nums; transition: border-color var(--duration-fast, 150ms), box-shadow var(--duration-fast, 150ms); }
+  input:focus-visible { outline: none; border-color: var(--ring, #a1a1aa); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring, #a1a1aa) 40%, transparent); }
+  input[aria-invalid=true], input[aria-invalid=true]:focus-visible { border-color: var(--destructive, #dc2626); }
+  input:disabled { opacity: 0.55; cursor: not-allowed; }
+  .time-error { margin: 0; font-size: 0.85rem; color: var(--destructive, #dc2626); }
+  .time-error:empty { display: none; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+</style>
+<time-field value:model="" label="Time" description="" error="" name="" min="" max="" step={null} required={false} disabled={false} readonly={false}>
+  <div class="time-stack">
+    <label for={inputId}>{label} <span zb-if={!required} class="time-optional">(optional)</span></label>
+    <p zb-if={description} class="time-help" id={helpId}>{description}</p>
+    <input ref={field} id={inputId} type="time" name={name || null} min={min || null} max={max || null} step={step} required={required} disabled={disabled} readonly={readonly} aria-invalid={shown ? "true" : "false"} aria-describedby={[description ? helpId : "", shown ? errorId : ""].join(" ").trim() || null} value={value} oninput={input} onblur={check} oninvalid={check}>
+    <p class="time-error" id={errorId} aria-live="polite">{shown}</p>
+  </div>
+</time-field>

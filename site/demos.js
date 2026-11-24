@@ -563,4 +563,31 @@ export const demos = {
     },
     events: ['itemselect'],
   },
+  'time-field': {
+    attrs: { label: 'Pickup time', description: 'We are open from 9 to 5:30.', name: 'pickup', min: '09:00', max: '17:30' },
+    props: { value: '14:30', required: true, step: 900 },
+    events: ['valuechange'],
+  },
+  'split-panel': {
+    attrs: { label: 'Resize the file list' },
+    props: { position: 35, min: 20, max: 70 },
+    events: ['positionchange'],
+    html: '<div slot="start" class="demo-pane"><strong>Files</strong><br>index.html<br>about.html<br>styles.css</div>\n<div slot="end" class="demo-pane"><strong>index.html</strong><br>Drag the bar, or focus it and use the arrow keys.</div>',
+  },
+  'color-picker': {
+    attrs: { label: 'Brand colour', name: 'brand' },
+    props: { value: '#7c3aed' },
+    events: ['valuechange'],
+  },
+  'slide-carousel': {
+    attrs: { label: 'What people built' },
+    props: { index: 0 },
+    events: ['indexchange'],
+    html: '<div class="demo-slide" aria-label="Bake sale planner"><strong>Bake sale planner</strong><p>Sign-ups, stalls and a running total, built in a weekend.</p></div>\n<div class="demo-slide" aria-label="Trail log"><strong>Trail log</strong><p>Hikes on a map, with photos that load as you scroll.</p></div>\n<div class="demo-slide" aria-label="Shift board"><strong>Shift board</strong><p>Who is on, who swapped, and who still owes a Saturday.</p></div>',
+  },
+  'sortable-list': {
+    attrs: { label: 'This week, in order of priority' },
+    props: { items: [{ id: 'invoice', label: 'Send the March invoice' }, { id: 'review', label: 'Review the pull request' }, { id: 'call', label: 'Call the venue' }, { id: 'plan', label: 'Plan the sprint' }] },
+    events: ['reorder'],
+  },
 };
