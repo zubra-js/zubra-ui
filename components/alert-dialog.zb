@@ -1,0 +1,76 @@
+<!--
+  A dialog that stops everything to ask one question before something that can't be undone:
+  delete, discard, sign everyone out. Unlike modal-dialog it has no close button and a click
+  outside does nothing, so it's left only by an answer. Focus starts on Cancel, the safe answer;
+  Escape cancels. Its heading names it and its content describes it (role="alertdialog"), so a
+  screen reader reads the question as it opens. `open` is two-way; `destructive` colours the
+  confirm button as a warning.
+  @fires openchange - It opened or closed; `detail` is the new `open`.
+  @fires confirm - The confirm button was pressed.
+  @fires cancel - Cancel was pressed, or Escape.
+  @slot - What will happen, in a sentence or two.
+  @slot heading - The question (defaults to `label`).
+-->
+<script>
+  import { effect, emit, id } from '@zubra/runtime'
+
+  const headingId = id()
+  const bodyId = id()
+  let dialog = null
+  let cancelButton = null
+  // Set when a button answers, so the dialog's own close event doesn't report a second answer.
+  let answered = false
+
+  effect(() => {
+    if (!dialog) return
+    if (open && !dialog.open) {
+      answered = false
+      dialog.showModal()
+      cancelButton?.focus()
+    } else if (!open && dialog.open) dialog.close()
+  })
+  function answer(confirmed) {
+    answered = true
+    open = false
+    if (confirmed) emit('confirm')
+    else emit('cancel')
+  }
+  // Escape (the dialog's cancel event), or the dialog closed some other way.
+  function closed() {
+    if (!answered && open) emit('cancel')
+    open = false
+  }
+</script>
+<style>
+  dialog { padding: 0; border: 0; border-radius: calc(var(--radius, 0.625rem) * 1.44); width: min(28rem, calc(100vw - 2rem)); background: var(--card, #ffffff); color: var(--foreground, #1d2130); box-shadow: 0 24px 64px #0d122040; }
+  dialog { opacity: 0; scale: 0.96; transition: opacity var(--duration-normal, 200ms) var(--ease-out, ease-out), scale var(--duration-normal, 200ms) var(--ease-out, ease-out), overlay var(--duration-normal, 200ms) allow-discrete, display var(--duration-normal, 200ms) allow-discrete; }
+  dialog[open] { opacity: 1; scale: 1; }
+  @starting-style { dialog[open] { opacity: 0; scale: 0.96; } }
+  dialog::backdrop { background: #0d122000; transition: background-color var(--duration-normal, 200ms) var(--ease-out, ease-out), overlay var(--duration-normal, 200ms) allow-discrete, display var(--duration-normal, 200ms) allow-discrete; }
+  dialog[open]::backdrop { background: #0d122080; }
+  @starting-style { dialog[open]::backdrop { background: #0d122000; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { transition-duration: 0s !important; animation-duration: 0s !important; } }
+  .alert-panel { display: grid; gap: 0.6rem; padding: 1.25rem; }
+  h2 { margin: 0; font-size: 1.1rem; line-height: 1.3; }
+  .alert-body { color: color-mix(in oklab, var(--muted-foreground, #71717a) 75%, var(--foreground, #18181b)); }
+  footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; margin-top: 0.6rem; }
+  button { min-height: 2.25rem; padding: 0.45rem 0.95rem; border: 1px solid var(--border, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) - 2px); background: var(--background, #fff); color: var(--foreground, #18181b); font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+  button:hover { background: var(--accent, #f4f4f5); }
+  button:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 2px; }
+  .alert-confirm { border-color: transparent; background: var(--primary, #18181b); color: var(--primary-foreground, #fafafa); }
+  .alert-confirm:hover { background: color-mix(in oklab, var(--primary, #18181b) 88%, var(--background, #fff)); }
+  .alert-destructive { background: var(--destructive, #dc2626); color: #fff; }
+  .alert-destructive:hover { background: color-mix(in oklab, var(--destructive, #dc2626) 88%, #000); }
+</style>
+<alert-dialog open:model={false} label="Are you sure?" confirm-label="Continue" cancel-label="Cancel" destructive={false}>
+  <dialog ref={dialog} role="alertdialog" aria-labelledby={headingId} aria-describedby={bodyId} onclose={closed}>
+    <div class="alert-panel">
+      <h2 id={headingId}><zb-slot name="heading">{label}</zb-slot></h2>
+      <div class="alert-body" id={bodyId}><zb-slot></zb-slot></div>
+      <footer>
+        <button ref={cancelButton} type="button" onclick={() => answer(false)}>{cancelLabel}</button>
+        <button type="button" class="alert-confirm" class:alert-destructive={destructive} onclick={() => answer(true)}>{confirmLabel}</button>
+      </footer>
+    </div>
+  </dialog>
+</alert-dialog>

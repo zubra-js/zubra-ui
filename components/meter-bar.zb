@@ -1,0 +1,39 @@
+<!--
+  A measurement inside a known range: disk used, a password's strength, a battery. Unlike a
+  progress bar it isn't going anywhere. `low` and `high` split the range into three bands, and
+  `optimum` says which end is good, as on the native <meter>; the band's name is written next to
+  the value ("Low", "OK", "High", or your own `band-labels`), so colour is never the only signal.
+-->
+<script>
+  const clamp = (number) => Math.min(Math.max(Number(number) || 0, min), max)
+  const amount = clamp(value)
+  const percent = max > min ? Math.round(((amount - min) / (max - min)) * 100) : 0
+  const lowEdge = low == null ? min : clamp(low)
+  const highEdge = high == null ? max : clamp(high)
+  // Which band the value is in, and whether that band is the good one, next to it, or far from it.
+  const band = amount < lowEdge ? 0 : amount > highEdge ? 2 : 1
+  const best = optimum == null ? 1 : optimum < lowEdge ? 0 : optimum > highEdge ? 2 : 1
+  const distance = Math.abs(band - best)
+  const banded = low != null || high != null
+  const bandName = banded ? (bandLabels[band] ?? "") : ""
+  const shownValue = `${amount}${unit}`
+  const text = [shownValue, max !== 100 || unit ? `of ${max}${unit}` : "", bandName].filter(Boolean).join(", ")
+</script>
+<style>
+  :host { display: block; }
+  .meter-head { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.4rem; font-size: 0.875rem; }
+  .meter-label { font-weight: 600; }
+  .meter-value { font-variant-numeric: tabular-nums; color: color-mix(in oklab, var(--muted-foreground, #71717a) 75%, var(--foreground, #18181b)); }
+  .meter-track { height: 0.55rem; overflow: hidden; border-radius: 999px; background: var(--muted, #f4f4f5); }
+  .meter-fill { height: 100%; border-radius: inherit; background: var(--primary, #18181b); transition: width var(--duration-slow, 400ms) var(--ease-out, ease-out); }
+  .meter-near .meter-fill { background: oklch(0.68 0.15 70); }
+  .meter-far .meter-fill { background: var(--destructive, #dc2626); }
+  .meter-good .meter-fill { background: oklch(0.6 0.15 150); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+</style>
+<meter-bar value={0} min={0} max={100} low={null} high={null} optimum={null} label="Level" unit="" show-value={true} band-labels={["Low", "OK", "High"]}>
+  <div class="meter-head"><span class="meter-label">{label}</span><span zb-if={showValue} class="meter-value">{shownValue}<zb-if test={bandName}> · {bandName}</zb-if></span></div>
+  <div class="meter-track" class:meter-good={banded && distance === 0} class:meter-near={banded && distance === 1} class:meter-far={banded && distance === 2} role="meter" aria-label={label} aria-valuemin={min} aria-valuemax={max} aria-valuenow={amount} aria-valuetext={text}>
+    <div class="meter-fill" style:width={`${percent}%`}></div>
+  </div>
+</meter-bar>

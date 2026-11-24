@@ -1,0 +1,84 @@
+<!--
+  A menu of actions for whatever is inside it, opened where the visitor asked: a right click, a
+  long press on a touch screen, or the keyboard's menu key (or Shift+F10) on something focused in
+  it. On the platform's `popover`, so Escape or a click outside closes it, and focus goes back to
+  where it was. Arrow keys, Home, End and typing a letter move among the items; Enter or Space
+  picks one. `items` is `[{ value, label, shortcut?, disabled?, danger? }]`, with
+  `{ separator: true }` between groups. `disabled` leaves the browser's own menu alone.
+  @slot - What the menu is for: a card, a row, a canvas.
+  @fires menuopen - The menu opened; `detail` is the element it was opened on.
+  @fires itemselect - An item was picked; `detail` is its value.
+-->
+<script>
+  import { id, emit, onMount } from '@zubra/runtime'
+  import { rovingFocus, typeahead } from '@zubra/runtime/primitives'
+
+  const menuId = id()
+  let menu = null
+  // What had focus when the menu opened, to give it back.
+  let origin = null
+
+  function asked(event) {
+    if (disabled || !items.length) return
+    event.preventDefault()
+    origin = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : event.target
+    // From the keyboard there is no pointer: open at the focused element's corner.
+    const box = event.target.getBoundingClientRect()
+    const keyboard = event.button < 0 || (event.clientX === 0 && event.clientY === 0)
+    if (menu.matches(":popover-open")) menu.hidePopover()
+    menu.showPopover()
+    place(keyboard ? box.left + 8 : event.clientX, keyboard ? box.bottom - 4 : event.clientY)
+    menu.querySelector("[role=menuitem]:not(:disabled)")?.focus()
+    emit("menuopen", event.target)
+  }
+  // At the point, pulled back inside the window when it would run off the edge.
+  function place(x, y) {
+    const own = menu.getBoundingClientRect()
+    menu.style.left = `${Math.max(4, Math.min(x, innerWidth - own.width - 4))}px`
+    menu.style.top = `${Math.max(4, y + own.height + 4 <= innerHeight ? y : y - own.height)}px`
+  }
+  function toggled(event) {
+    if (event.newState !== "closed") return
+    if (menu.contains(document.activeElement) || document.activeElement === document.body) origin?.focus?.()
+    origin = null
+  }
+  function choose(item) {
+    const back = origin
+    menu.hidePopover()
+    back?.focus?.()
+    emit("itemselect", item.value)
+  }
+  // Tab out of the menu closes it, as menus do.
+  function left(event) {
+    if (menu.matches(":popover-open") && !menu.contains(event.relatedTarget)) menu.hidePopover()
+  }
+
+  onMount(() => {
+    const roving = rovingFocus(menu, { selector: "[role=menuitem]", orientation: "vertical" })
+    const typing = typeahead(menu, { selector: "[role=menuitem]", text: (item) => item.querySelector(".context-label").textContent.trim() })
+    return () => { roving(); typing() }
+  })
+</script>
+<style>
+  :host { display: block; }
+  [popover] { position: fixed; inset: auto; margin: 0; min-width: 12rem; max-width: calc(100vw - 8px); padding: 0.3rem; border: 1px solid var(--border, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) * 0.96); background: var(--card, #fff); color: var(--foreground, #18181b); box-shadow: 0 8px 24px #0d122026; }
+  [popover] { opacity: 0; scale: 0.97; transition: opacity var(--duration-fast, 150ms) var(--ease-out, ease-out), scale var(--duration-fast, 150ms) var(--ease-out, ease-out), overlay var(--duration-fast, 150ms) allow-discrete, display var(--duration-fast, 150ms) allow-discrete; transform-origin: top left; }
+  [popover]:popover-open { opacity: 1; scale: 1; }
+  @starting-style { [popover]:popover-open { opacity: 0; scale: 0.97; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { transition-duration: 0s !important; animation-duration: 0s !important; } }
+  [role=menuitem] { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5rem; width: 100%; padding: 0.4rem 0.6rem; border: 0; border-radius: calc(var(--radius, 0.625rem) * 0.64); background: none; color: inherit; font: inherit; font-size: 0.925rem; text-align: start; cursor: pointer; }
+  [role=menuitem]:hover, [role=menuitem]:focus { background: var(--accent, #f4f4f5); outline: none; }
+  [role=menuitem]:disabled { color: var(--muted-foreground, #71717a); cursor: default; background: none; }
+  .context-danger:not(:disabled) { color: var(--destructive, #dc2626); }
+  .context-shortcut { color: var(--muted-foreground, #71717a); font-size: 0.8rem; white-space: nowrap; }
+  [role=separator] { height: 1px; margin: 0.3rem 0.2rem; background: var(--border, #e4e4e7); }
+</style>
+<context-menu label="Actions" items={[]} disabled={false}>
+  <div class="context-area" oncontextmenu={asked}><zb-slot></zb-slot></div>
+  <div popover id={menuId} role="menu" aria-label={label} ref={menu} ontoggle={toggled} onfocusout={left}>
+    <zb-each items={items} as="item" index="i" key={item.value ?? `separator-${i}`}>
+      <div zb-if={item.separator} role="separator"></div>
+      <button zb-else type="button" role="menuitem" tabindex="-1" class:context-danger={Boolean(item.danger)} disabled={Boolean(item.disabled)} onclick={() => choose(item)}><span class="context-label">{item.label}</span><span zb-if={item.shortcut} class="context-shortcut" aria-hidden="true">{item.shortcut}</span></button>
+    </zb-each>
+  </div>
+</context-menu>

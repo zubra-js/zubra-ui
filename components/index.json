@@ -742,6 +742,96 @@
         "word-rotate.zb"
       ],
       "dependencies": []
+    },
+    {
+      "name": "copy-button",
+      "category": "widget",
+      "description": "A button that copies `value` to the clipboard, then says \"Copied\" for a moment, to sighted visitors and screen readers alike. If the browser refuses, it says so and copies nothing. Fires `copy` with the text.",
+      "files": [
+        "copy-button.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "divider-line",
+      "category": "display",
+      "description": "A line between two groups of content, across or down, with optional text in the middle (\"or\", \"Today\"). A separator to screen readers, or hidden from them with `decorative`.",
+      "files": [
+        "divider-line.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "meter-bar",
+      "category": "data",
+      "description": "A measurement inside a known range: disk used, a password's strength, a battery. `low`, `high` and `optimum` work as on the native <meter>, and the band's name is written beside the value, so colour is never the only signal.",
+      "files": [
+        "meter-bar.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "password-field",
+      "category": "input",
+      "description": "A labelled password field on a native <input>: it submits under its `name`, works with password managers, and validates as the browser's own. A button shows or hides what was typed, and the field warns when Caps Lock is on. `value` is two-way.",
+      "files": [
+        "password-field.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "search-field",
+      "category": "input",
+      "description": "A search box on a native <input type=\"search\"> with a clear button. Enter, the clear button, or a pause of `debounce` milliseconds fires `search`; Escape clears it. `value` is two-way.",
+      "files": [
+        "search-field.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "alert-dialog",
+      "category": "app",
+      "description": "A dialog that asks one question before something that can't be undone. It has no close button and ignores clicks outside, focus starts on Cancel, and Escape cancels. `open` is two-way; it fires `confirm` or `cancel`.",
+      "files": [
+        "alert-dialog.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "tree-view",
+      "category": "navigation",
+      "description": "A tree of nested items: folders and files, a table of contents, categories. One tab stop; arrow keys move, open and close, Home and End jump, and typing a letter finds an item. `items` is `[{ id, label, children? }]`; `value` (the selected id) and `expanded` are two-way.",
+      "files": [
+        "tree-view.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "tool-bar",
+      "category": "navigation",
+      "description": "A row of controls that is one stop for the Tab key: the arrow keys move among the buttons inside, Home and End jump to the ends, and Tab leaves. For formatting buttons, view switches, and actions on a selection.",
+      "files": [
+        "tool-bar.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "context-menu",
+      "category": "widget",
+      "description": "A menu for whatever is inside it, opened by a right click, a long press, or the keyboard's menu key, where the visitor asked for it. On the platform's `popover`; arrow keys and typing move among the items. `items` is `[{ value, label, shortcut?, disabled?, danger? }]`, with `{ separator: true }` between groups.",
+      "files": [
+        "context-menu.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "menu-bar",
+      "category": "navigation",
+      "description": "An application's menu bar: File, Edit, View, each opening a menu of commands. One tab stop; Left and Right move along the bar and between open menus, Down opens, Escape returns to the bar. `menus` is `[{ label, items: [{ value, label, shortcut?, disabled? }] }]`.",
+      "files": [
+        "menu-bar.zb"
+      ],
+      "dependencies": []
     }
   ]
 }

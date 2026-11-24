@@ -207,7 +207,8 @@ masonry-grid article p { margin: 0; color: var(--muted-foreground); font-size: 0
 .demo-box { padding: 0.75rem 0.9rem; border: 1px dashed color-mix(in oklab, var(--primary) 45%, var(--border)); border-radius: calc(var(--radius) - 2px); background: color-mix(in oklab, var(--primary) 6%, var(--card)); color: var(--foreground); font-size: 0.9rem; }
 .demo-chip { padding: 0.3rem 0.75rem; border-radius: 999px; background: var(--secondary); color: var(--secondary-foreground); font-size: 0.875rem; font-weight: 500; }
 .stage :is(stack-layout, cluster-layout, auto-grid, sidebar-layout, switcher-layout, reel-layout, backdrop-pattern) { inline-size: 100%; }
-.stage :is(signin-block, settings-block, pricing-block, dashboard-shell, nav-bar, hero-section, feature-grid, site-footer, faq-list, bar-chart, progress-bar, logo-cloud, newsletter-signup, data-table, testimonial-card, empty-state, file-drop) { inline-size: 100%; }
+.stage :is(signin-block, settings-block, pricing-block, dashboard-shell, nav-bar, hero-section, feature-grid, site-footer, faq-list, bar-chart, progress-bar, logo-cloud, newsletter-signup, data-table, testimonial-card, empty-state, file-drop, divider-line, meter-bar, menu-bar) { inline-size: 100%; }
+.stage tree-view { inline-size: min(100%, 20rem); }
 .demo-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 0.75rem; }
 .demo-stats strong { display: block; font-size: 1.5rem; }
 

@@ -1,0 +1,26 @@
+<!--
+  A line between two groups of content, across (`orientation="horizontal"`) or down
+  (`"vertical"`, inside a row). With `label` or slotted text ("or", "Today") the text sits in the
+  line. It is a separator to screen readers; with `decorative` it is hidden from them, for a line
+  that only looks nice.
+  @slot - Text in the middle of the line (defaults to `label`).
+-->
+<script lang="ts">
+  declare const orientation: "horizontal" | "vertical";
+  import { hasSlot } from '@zubra/runtime'
+
+  const slotted = hasSlot()
+  const texted = Boolean(label) || slotted
+</script>
+<style>
+  :host { display: block; }
+  :host([orientation="vertical"]) { display: inline-block; align-self: stretch; }
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 0; color: color-mix(in oklab, var(--muted-foreground, #71717a) 75%, var(--foreground, #18181b)); font-size: 0.8rem; font-weight: 600; }
+  .divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--border, #e4e4e7); }
+  .divider-plain::after { display: none; }
+  .divider-vertical { flex-direction: column; height: 100%; min-height: 1em; }
+  .divider-vertical::before, .divider-vertical::after { border-top: 0; border-left: 1px solid var(--border, #e4e4e7); }
+</style>
+<divider-line orientation="horizontal" label="" decorative={false}>
+  <div class="divider divider-{orientation}" class:divider-plain={!texted} role={decorative ? "none" : "separator"} aria-orientation={decorative ? null : orientation}><span zb-if={texted}><zb-slot>{label}</zb-slot></span></div>
+</divider-line>

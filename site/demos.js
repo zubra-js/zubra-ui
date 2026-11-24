@@ -481,4 +481,86 @@ export const demos = {
     attrs: { type: 'button' },
     html: 'Book a class',
   },
+  'copy-button': {
+    attrs: { value: 'npx shadcn@latest add https://zubra-js.github.io/zubra-ui/r/copy-button.json', label: 'Copy install command' },
+    props: {},
+    events: ['copy'],
+  },
+  'divider-line': {
+    attrs: { label: 'or continue with email' },
+    props: {},
+    events: [],
+  },
+  'meter-bar': {
+    attrs: { label: 'Storage used', unit: ' GB' },
+    props: { value: 412, max: 500, low: 250, high: 400, optimum: 100, bandLabels: ['Plenty left', 'Filling up', 'Nearly full'] },
+    events: [],
+  },
+  'password-field': {
+    attrs: { label: 'New password', description: 'At least 12 characters. A sentence works well.', name: 'password', autocomplete: 'new-password' },
+    props: { required: true, minlength: 12 },
+    events: ['valuechange'],
+  },
+  'search-field': {
+    attrs: { label: 'Search recipes', placeholder: 'Sourdough, lemon tart…', name: 'q' },
+    props: { debounce: 300 },
+    events: ['search'],
+  },
+  'alert-dialog': {
+    attrs: { label: 'Delete this project?', 'confirm-label': 'Delete project', 'cancel-label': 'Keep it' },
+    props: { open: false, destructive: true },
+    events: ['confirm', 'cancel'],
+    html: '<p>The project and its 14 files will be deleted for everyone on the team. This can\'t be undone.</p>',
+    opener: 'Delete project…',
+  },
+  'tree-view': {
+    attrs: { label: 'Project files' },
+    props: {
+      value: 'button',
+      expanded: ['src', 'components'],
+      items: [
+        { id: 'src', label: 'src', children: [
+          { id: 'components', label: 'components', children: [{ id: 'button', label: 'action-button.zb' }, { id: 'dialog', label: 'modal-dialog.zb' }, { id: 'tabs', label: 'tab-list.zb' }] },
+          { id: 'pages', label: 'pages', children: [{ id: 'home', label: 'index.html' }, { id: 'about', label: 'about.html' }] },
+          { id: 'main', label: 'main.js' },
+        ] },
+        { id: 'tests', label: 'tests', children: [{ id: 'spec', label: 'components.test.js' }] },
+        { id: 'package', label: 'package.json' },
+        { id: 'readme', label: 'README.md' },
+      ],
+    },
+    events: ['valuechange', 'expandedchange'],
+  },
+  'tool-bar': {
+    attrs: { label: 'Text formatting' },
+    props: {},
+    events: [],
+    html: '<action-button variant="ghost" size="sm">Bold</action-button>\n<action-button variant="ghost" size="sm">Italic</action-button>\n<action-button variant="ghost" size="sm">Underline</action-button>\n<hr>\n<action-button variant="ghost" size="sm">Link</action-button>\n<action-button variant="ghost" size="sm" disabled>Image</action-button>\n<action-button variant="ghost" size="sm">Quote</action-button>',
+  },
+  'context-menu': {
+    attrs: { label: 'File actions' },
+    props: {
+      items: [
+        { value: 'open', label: 'Open' },
+        { value: 'rename', label: 'Rename', shortcut: 'F2' },
+        { value: 'duplicate', label: 'Duplicate' },
+        { value: 'move', label: 'Move to…', disabled: true },
+        { separator: true },
+        { value: 'delete', label: 'Delete', danger: true },
+      ],
+    },
+    events: ['itemselect'],
+    html: '<div class="demo-box" tabindex="0">quarterly-report.pdf<br><small>Right-click, long-press, or press the menu key</small></div>',
+  },
+  'menu-bar': {
+    attrs: { label: 'Document' },
+    props: {
+      menus: [
+        { label: 'File', items: [{ value: 'new', label: 'New', shortcut: 'Ctrl N' }, { value: 'open', label: 'Open…', shortcut: 'Ctrl O' }, { value: 'save', label: 'Save', shortcut: 'Ctrl S' }, { separator: true }, { value: 'print', label: 'Print…' }] },
+        { label: 'Edit', items: [{ value: 'undo', label: 'Undo', shortcut: 'Ctrl Z' }, { value: 'redo', label: 'Redo', disabled: true }, { separator: true }, { value: 'cut', label: 'Cut' }, { value: 'copy', label: 'Copy' }, { value: 'paste', label: 'Paste' }] },
+        { label: 'View', items: [{ value: 'zoom-in', label: 'Zoom in' }, { value: 'zoom-out', label: 'Zoom out' }, { value: 'full', label: 'Full screen' }] },
+      ],
+    },
+    events: ['itemselect'],
+  },
 };

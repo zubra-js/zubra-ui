@@ -1,0 +1,125 @@
+<!--
+  An application's menu bar: File, Edit, View, each opening a menu of commands. The bar is one
+  stop for the Tab key. Left and Right move along it; Down, Enter or Space opens a menu (Up opens
+  it at its last item). Inside a menu, Up and Down move, typing a letter jumps, Left and Right go
+  to the menu next door, Enter or Space picks, and Escape closes it and returns to the bar. With
+  a menu open, pointing at another title opens that one instead. `menus` is
+  `[{ label, items: [{ value, label, shortcut?, disabled? }] }]`, with `{ separator: true }`
+  between groups of items. For a few actions behind one button, use dropdown-menu.
+  @fires itemselect - A command was picked; `detail` is its value.
+-->
+<script>
+  import { id, emit, onMount } from '@zubra/runtime'
+  import { rovingFocus, typeahead } from '@zubra/runtime/primitives'
+
+  const baseId = id()
+  const anchored = typeof CSS !== "undefined" && CSS.supports("position-area: bottom")
+  let bar = null
+  // The index of the open menu, or -1.
+  let openAt = -1
+  // The title Tab lands on: the one used last.
+  let stopAt = 0
+
+  const title = (at) => bar.querySelectorAll(".menubar-title")[at]
+  const panel = (at) => bar.querySelectorAll("[role=menu]")[at]
+  const entries = (at) => [...panel(at).querySelectorAll("[role=menuitem]:not(:disabled)")]
+
+  function show(at, last = false) {
+    const count = menus.length
+    const to = ((at % count) + count) % count
+    openAt = to
+    const menu = panel(to)
+    if (!menu.matches(":popover-open")) menu.showPopover()
+    if (!anchored) place(to)
+    const all = entries(to)
+    ;(last ? all.at(-1) : all[0] ?? title(to))?.focus()
+  }
+  function toggled(event, at) {
+    if (event.newState === "open") {
+      openAt = at
+      if (!anchored) place(at)
+      if (!panel(at).contains(document.activeElement)) (entries(at)[0] ?? title(at)).focus()
+    } else if (openAt === at) {
+      // Closed by Escape or a click outside (not by opening another menu): back to its title.
+      openAt = -1
+      if (panel(at).contains(document.activeElement) || document.activeElement === document.body) title(at).focus()
+    }
+  }
+  function titleKeys(event, at) {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault()
+      show(at, event.key === "ArrowUp")
+    }
+  }
+  function menuKeys(event, at) {
+    const rtl = getComputedStyle(bar).direction === "rtl"
+    const next = rtl ? "ArrowLeft" : "ArrowRight"
+    const previous = rtl ? "ArrowRight" : "ArrowLeft"
+    if (event.key !== next && event.key !== previous) return
+    event.preventDefault()
+    event.stopPropagation()
+    show(at + (event.key === next ? 1 : -1))
+  }
+  function hovered(at) {
+    if (openAt >= 0 && openAt !== at) show(at)
+  }
+  function choose(item, at) {
+    openAt = -1
+    panel(at).hidePopover()
+    title(at).focus()
+    emit("itemselect", item.value)
+  }
+  // Tab out of an open menu closes it, as menus do.
+  function left(event, at) {
+    if (openAt === at && !panel(at).contains(event.relatedTarget) && !event.relatedTarget?.closest?.(".menubar-title")) panel(at).hidePopover()
+  }
+  // Without anchor positioning: below its title, kept inside the window.
+  function place(at) {
+    const from = title(at).getBoundingClientRect()
+    const own = panel(at).getBoundingClientRect()
+    panel(at).style.top = `${from.bottom + 4}px`
+    panel(at).style.left = `${Math.max(4, Math.min(from.left, innerWidth - own.width - 4))}px`
+  }
+
+  onMount(() => {
+    const along = rovingFocus(bar, { selector: ".menubar-title", orientation: "horizontal" })
+    const within = rovingFocus(bar, { selector: "[role=menu] [role=menuitem]", orientation: "vertical" })
+    const typing = typeahead(bar, { selector: "[role=menu] [role=menuitem]", text: (item) => item.querySelector(".menubar-label").textContent.trim() })
+    return () => { along(); within(); typing() }
+  })
+</script>
+<style>
+  :host { display: block; }
+  .menubar { display: flex; flex-wrap: wrap; gap: 0.15rem; padding: 0.25rem; border: 1px solid var(--border, #e4e4e7); border-radius: var(--radius, 0.625rem); background: var(--card, #fff); color: var(--card-foreground, #18181b); }
+  .menubar-title { padding: 0.35rem 0.7rem; border: 0; border-radius: calc(var(--radius, 0.625rem) - 4px); background: none; color: inherit; font: inherit; font-size: 0.925rem; font-weight: 500; cursor: pointer; }
+  .menubar-title:hover, .menubar-title[aria-expanded=true] { background: var(--accent, #f4f4f5); }
+  .menubar-title:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: -1px; }
+  [popover] { position: fixed; inset: auto; margin: 0; min-width: 12rem; max-width: calc(100vw - 8px); padding: 0.3rem; border: 1px solid var(--border, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) * 0.96); background: var(--card, #fff); color: var(--foreground, #18181b); box-shadow: 0 8px 24px #0d122026; }
+  @supports (position-area: bottom) {
+    [popover] { position-area: bottom span-right; position-try-fallbacks: flip-inline; margin-top: 4px; }
+  }
+  [popover] { opacity: 0; translate: 0 -0.25rem; transition: opacity var(--duration-fast, 150ms) var(--ease-out, ease-out), translate var(--duration-fast, 150ms) var(--ease-out, ease-out), overlay var(--duration-fast, 150ms) allow-discrete, display var(--duration-fast, 150ms) allow-discrete; }
+  [popover]:popover-open { opacity: 1; translate: 0; }
+  @starting-style { [popover]:popover-open { opacity: 0; translate: 0 -0.25rem; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after, ::backdrop { transition-duration: 0s !important; animation-duration: 0s !important; } }
+  [role=menu] [role=menuitem] { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5rem; width: 100%; padding: 0.4rem 0.6rem; border: 0; border-radius: calc(var(--radius, 0.625rem) * 0.64); background: none; color: inherit; font: inherit; font-size: 0.925rem; text-align: start; cursor: pointer; }
+  [role=menu] [role=menuitem]:hover, [role=menu] [role=menuitem]:focus { background: var(--accent, #f4f4f5); outline: none; }
+  [role=menu] [role=menuitem]:disabled { color: var(--muted-foreground, #71717a); cursor: default; background: none; }
+  .menubar-shortcut { color: var(--muted-foreground, #71717a); font-size: 0.8rem; white-space: nowrap; }
+  [role=separator] { height: 1px; margin: 0.3rem 0.2rem; background: var(--border, #e4e4e7); }
+</style>
+<menu-bar label="Menu" menus={[]}>
+  <div ref={bar} class="menubar" role="menubar" aria-label={label}>
+    <zb-each items={menus} as="menu" index="at" key={menu.label}>
+      <div class="menubar-cell" role="none">
+        <button type="button" class="menubar-title" role="menuitem" tabindex={at === Math.min(stopAt, menus.length - 1) ? "0" : "-1"} onfocus={() => (stopAt = at)} id={`${baseId}-title-${at}`} popovertarget={`${baseId}-menu-${at}`} aria-haspopup="menu" aria-expanded={openAt === at ? "true" : "false"} style:anchor-name={`--${baseId}-${at}`} onkeydown={(event) => titleKeys(event, at)} onpointerenter={() => hovered(at)}>{menu.label}</button>
+        <div popover id={`${baseId}-menu-${at}`} role="menu" aria-labelledby={`${baseId}-title-${at}`} style:position-anchor={`--${baseId}-${at}`} ontoggle={(event) => toggled(event, at)} onkeydown={(event) => menuKeys(event, at)} onfocusout={(event) => left(event, at)}>
+          <zb-each items={menu.items ?? []} as="item" index="i" key={item.value ?? `separator-${i}`}>
+            <div zb-if={item.separator} role="separator"></div>
+            <button zb-else type="button" role="menuitem" tabindex="-1" disabled={Boolean(item.disabled)} onclick={() => choose(item, at)}><span class="menubar-label">{item.label}</span><span zb-if={item.shortcut} class="menubar-shortcut" aria-hidden="true">{item.shortcut}</span></button>
+          </zb-each>
+        </div>
+      </div>
+    </zb-each>
+  </div>
+</menu-bar>

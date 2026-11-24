@@ -1,0 +1,67 @@
+<!--
+  A search box on a native <input type="search">, with a clear button once there's text. Typing
+  fires `valuechange`; Enter, the clear button, or a pause of `debounce` milliseconds (when set)
+  fires `search` with the text, which is when to run the query. Escape clears the field. In a
+  form it submits under its `name`. `value` is two-way. The label is always there for screen
+  readers; `hide-label` hides it from sight when the placeholder and icon say enough.
+  @fires valuechange - The text changed; `detail` is the new text.
+  @fires search - Run the search now; `detail` is the text ("" when cleared).
+-->
+<script>
+  import { emit, id, onUnmount } from '@zubra/runtime'
+
+  const inputId = id()
+  let field = null
+  let timer = 0
+
+  function run(text) {
+    clearTimeout(timer)
+    emit('search', text)
+  }
+  function input(event) {
+    value = event.target.value
+    clearTimeout(timer)
+    if (debounce > 0) timer = setTimeout(() => emit('search', value), debounce)
+  }
+  function key(event) {
+    if (event.key === "Enter") run(value)
+    else if (event.key === "Escape" && value) {
+      event.preventDefault()
+      clear()
+    }
+  }
+  function clear() {
+    value = ""
+    run("")
+    field?.focus()
+  }
+  onUnmount(() => clearTimeout(timer))
+</script>
+<style>
+  :host { display: block; }
+  .search-stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
+  label { font-weight: 600; font-size: 0.925rem; }
+  .search-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .search-row { display: flex; align-items: center; border: 1px solid var(--input, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) - 2px); background: var(--background, #fff); color: var(--foreground, #18181b); transition: border-color var(--duration-fast, 150ms), box-shadow var(--duration-fast, 150ms); }
+  .search-row:focus-within { border-color: var(--ring, #a1a1aa); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring, #a1a1aa) 40%, transparent); }
+  .search-icon { flex: none; margin-left: 0.7rem; color: var(--muted-foreground, #71717a); }
+  input { flex: 1; min-width: 0; padding: 0.55rem 0.6rem; border: 0; background: none; color: inherit; font: inherit; appearance: none; }
+  input::-webkit-search-cancel-button { display: none; }
+  input:focus-visible { outline: none; }
+  input::placeholder { color: var(--muted-foreground, #71717a); }
+  input:disabled { opacity: 0.55; cursor: not-allowed; }
+  button { flex: none; width: 1.75rem; height: 1.75rem; margin-right: 0.3rem; border: 0; border-radius: 50%; background: none; color: inherit; font-size: 1.15rem; line-height: 1; cursor: pointer; }
+  button:hover { background: var(--accent, #f4f4f5); }
+  button:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 1px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+</style>
+<search-field value:model="" label="Search" hide-label={false} name="" placeholder="" debounce={0} disabled={false}>
+  <div class="search-stack">
+    <label for={inputId} class:search-hidden={hideLabel}>{label}</label>
+    <div class="search-row">
+      <svg class="search-icon" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input ref={field} id={inputId} type="search" name={name || null} placeholder={placeholder || null} autocomplete="off" enterkeyhint="search" disabled={disabled} value={value} oninput={input} onkeydown={key}>
+      <button zb-if={value && !disabled} type="button" aria-label="Clear search" onclick={clear}>×</button>
+    </div>
+  </div>
+</search-field>

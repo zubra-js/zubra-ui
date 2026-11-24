@@ -1,0 +1,52 @@
+<!--
+  A button that copies `value` to the clipboard, then says so for `timeout` milliseconds: its text
+  changes to `copied-label` and the change is announced to screen readers. If the browser refuses
+  (no permission, or the page isn't secure), it says `failed-label` instead and nothing is copied.
+  @fires copy - The text was copied; `detail` is the text.
+  @slot - The button's text (defaults to `label`).
+-->
+<script lang="ts">
+  declare const variant: "outline" | "ghost" | "primary";
+  import { emit, onUnmount } from '@zubra/runtime'
+
+  // "idle", "copied" or "failed".
+  let state = "idle"
+  let timer = 0
+  const message = state === "copied" ? copiedLabel : state === "failed" ? failedLabel : ""
+
+  async function copy() {
+    clearTimeout(timer)
+    try {
+      await navigator.clipboard.writeText(String(value))
+      state = "copied"
+      emit('copy', String(value))
+    } catch {
+      state = "failed"
+    }
+    timer = setTimeout(() => (state = "idle"), timeout)
+  }
+  onUnmount(() => clearTimeout(timer))
+</script>
+<style>
+  :host { display: inline-block; vertical-align: middle; }
+  button { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.25rem; padding: 0.4rem 0.8rem; border: 1px solid var(--border, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) - 2px); background: var(--background, #fff); color: var(--foreground, #18181b); font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background-color var(--duration-fast, 150ms), border-color var(--duration-fast, 150ms); }
+  button:hover { background: var(--accent, #f4f4f5); }
+  button:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 2px; }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+  .copy-ghost { border-color: transparent; background: none; }
+  .copy-primary { border-color: transparent; background: var(--primary, #18181b); color: var(--primary-foreground, #fafafa); }
+  .copy-primary:hover { background: color-mix(in oklab, var(--primary, #18181b) 88%, var(--background, #fff)); }
+  svg { flex: none; }
+  .copy-failed { border-color: var(--destructive, #dc2626); }
+  .copy-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+</style>
+<copy-button value="" label="Copy" copied-label="Copied" failed-label="Couldn't copy" timeout={2000} variant="outline" disabled={false}>
+  <button type="button" class="copy-{variant}" class:copy-failed={state === "failed"} disabled={disabled} onclick={copy}>
+    <svg zb-if={state === "copied"} aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+    <svg zb-else aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg>
+    <span zb-if={state === "idle"}><zb-slot>{label}</zb-slot></span>
+    <span zb-else>{message}</span>
+  </button>
+  <span class="copy-status" role="status">{message}</span>
+</copy-button>

@@ -84,7 +84,7 @@ A theme is a JSON file in `themes/sets/` that `extends` another and lists only w
 
 ## The components
 
-81, each tested for its roles, accessible names and keyboard behaviour. They include:
+91, each tested for its roles, accessible names and keyboard behaviour. They include:
 - form controls: toggle switch, star rating, choice cards, colour swatches, money input, quantity stepper, tag input, date range, segmented control;
 - widgets: tabs, dropdown menu, combobox (with Zag.js), tooltip, accordion, modal dialog, flip card, step indicator;
 - display: line, donut and spark line charts, progress ring, streak grid, an image gallery with a lightbox, and a masonry grid;

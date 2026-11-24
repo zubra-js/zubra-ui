@@ -1,0 +1,104 @@
+<!--
+  A tree of nested items: folders and files, a table of contents, categories. `items` is
+  `[{ id, label, children?, disabled? }]`. One item is a tab stop; Up and Down move through the
+  items in view, Right opens a branch (then steps into it), Left closes it (then steps out to its
+  parent), Home and End jump to the ends, and typing a letter jumps to the next item that starts
+  with it. Enter, Space or a click selects an item; a click on a branch also opens or closes it.
+  `value` (the selected id) and `expanded` (the open branches' ids) are two-way.
+  @fires valuechange - An item was selected; `detail` is its id.
+  @fires expandedchange - A branch opened or closed; `detail` is the ids of the open branches.
+-->
+<script>
+  import { onMount } from '@zubra/runtime'
+  import { rovingFocus, typeahead } from '@zubra/runtime/primitives'
+
+  let tree = null
+  // The items in view, top to bottom, each with where it sits: screen readers get the nesting
+  // from aria-level, aria-setsize and aria-posinset.
+  const flatten = (nodes, open) => {
+    const out = []
+    const walk = (list, level, parent) => {
+      list.forEach((node, at) => {
+        const children = Array.isArray(node.children) ? node.children : []
+        const isOpen = children.length > 0 && open.includes(node.id)
+        out.push({ id: node.id, label: node.label, level, size: list.length, position: at + 1, parent, branch: children.length > 0, open: isOpen, disabled: Boolean(node.disabled) })
+        if (isOpen) walk(children, level + 1, node.id)
+      })
+    }
+    walk(Array.isArray(nodes) ? nodes : [], 1, null)
+    return out
+  }
+  const rows = flatten(items, expanded)
+  // The one item Tab lands on: the one used last, else the selected one, else the first.
+  let current = null
+  const has = (id) => id != null && rows.some((row) => String(row.id) === String(id))
+  const stop = has(current) ? current : has(value) ? value : rows[0]?.id
+  function entered(event) {
+    const item = event.target.closest?.("[role=treeitem]")
+    if (item) current = item.dataset.id
+  }
+
+  const focusRow = (id) => [...tree.querySelectorAll("[role=treeitem]")].find((item) => item.dataset.id === String(id))?.focus()
+  function toggle(row, open) {
+    if (!row.branch || row.open === open) return
+    expanded = open ? [...expanded, row.id] : expanded.filter((id) => id !== row.id)
+  }
+  function select(row) {
+    if (row.disabled) return
+    value = row.id
+  }
+  function click(row) {
+    if (row.disabled) return
+    select(row)
+    toggle(row, !row.open)
+  }
+  function keys(event) {
+    const item = event.target.closest?.("[role=treeitem]")
+    const at = item ? rows.findIndex((row) => String(row.id) === item.dataset.id) : -1
+    if (at < 0) return
+    const row = rows[at]
+    if (event.key === "ArrowRight") {
+      event.preventDefault()
+      if (row.branch && !row.open) toggle(row, true)
+      else if (row.open && rows[at + 1]) focusRow(rows[at + 1].id)
+    } else if (event.key === "ArrowLeft") {
+      event.preventDefault()
+      if (row.open) toggle(row, false)
+      else if (row.parent != null) focusRow(row.parent)
+    } else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      select(row)
+    }
+  }
+
+  onMount(() => {
+    const roving = rovingFocus(tree, { selector: "[role=treeitem]", orientation: "vertical", loop: false })
+    const typing = typeahead(tree, { selector: "[role=treeitem]", text: (item) => item.querySelector(".tree-label").textContent.trim() })
+    return () => { roving(); typing() }
+  })
+</script>
+<style>
+  :host { display: block; }
+  ul { display: grid; gap: 1px; margin: 0; padding: 0; list-style: none; }
+  li { display: flex; align-items: center; gap: 0.35rem; padding-block: 0.35rem; padding-inline-end: 0.6rem; border-radius: calc(var(--radius, 0.625rem) - 4px); color: var(--foreground, #18181b); font-size: 0.925rem; line-height: 1.35; cursor: pointer; user-select: none; }
+  li:hover { background: var(--accent, #f4f4f5); }
+  li:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: -2px; }
+  li[aria-selected=true] { background: var(--secondary, #f4f4f5); font-weight: 600; }
+  li[aria-disabled=true] { color: var(--muted-foreground, #71717a); cursor: default; }
+  li[aria-disabled=true]:hover { background: none; }
+  .tree-twisty { flex: none; width: 1rem; height: 1rem; color: var(--muted-foreground, #71717a); transition: rotate var(--duration-fast, 150ms); }
+  li[aria-expanded=true] > .tree-twisty { rotate: 90deg; }
+  .tree-leaf { visibility: hidden; }
+  .tree-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+</style>
+<tree-view items={[]} value:model="" expanded:model={[]} label="Tree">
+  <ul ref={tree} role="tree" aria-label={label} onkeydown={keys} onfocusin={entered}>
+    <zb-each items={rows} as="row" key={row.id}>
+      <li role="treeitem" tabindex={String(row.id) === String(stop) ? "0" : "-1"} data-id={row.id} aria-level={row.level} aria-setsize={row.size} aria-posinset={row.position} aria-expanded={row.branch ? (row.open ? "true" : "false") : null} aria-selected={row.id === value ? "true" : "false"} aria-disabled={row.disabled ? "true" : null} style:padding-inline-start={`${(row.level - 1) * 1.15 + 0.4}rem`} onclick={() => click(row)}>
+        <svg class="tree-twisty" class:tree-leaf={!row.branch} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>
+        <span class="tree-label">{row.label}</span>
+      </li>
+    </zb-each>
+  </ul>
+</tree-view>
