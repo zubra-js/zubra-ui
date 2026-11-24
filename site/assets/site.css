@@ -370,3 +370,21 @@ main > .studio, main > .composer { max-width: 96rem; }
 .composer .code pre { max-height: 26rem; overflow: auto; }
 @media (pointer: coarse) { .composer-item { padding-top: 3.1rem; } .composer-tools { height: 2.75rem; } .composer-tools button { width: 2.75rem; height: 2.75rem; } }
 @media (prefers-reduced-motion: reduce) { .composer-frame { transition: none; } }
+
+/* ---- the showcase page */
+.show-app { display: grid; gap: 1rem; padding: clamp(0.75rem, 2vw, 1.25rem); border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); background: var(--background); color: var(--foreground); }
+.show-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.show-row search-field { flex: 1 1 12rem; max-width: 18rem; }
+.show-files split-panel { min-height: 15rem; }
+.show-files tree-view { padding: 0.5rem; }
+.show-list { display: grid; gap: 0.25rem; margin: 0; padding: 0.5rem; list-style: none; }
+.show-list li { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.5rem 0.65rem; border-radius: calc(var(--radius) - 4px); font-size: 0.925rem; }
+.show-list li:hover { background: var(--accent); }
+.show-list li:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.show-list span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.show-hint { margin: 0; padding: 0 1.15rem 0.75rem; color: var(--muted-foreground); font-size: 0.825rem; }
+.show-form, .show-stack { display: grid; gap: 1rem; align-content: start; }
+.show-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; align-items: start; }
+.show-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 0.75rem; }
+.show-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.show-booking content-card p { margin: 0 0 0.5rem; }

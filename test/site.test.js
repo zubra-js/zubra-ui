@@ -20,7 +20,7 @@ const ELEMENTS = process.env.ZUBRA_UI_EMIT === 'element'
   ? new Set(readdirSync(join(root, 'dist/elements')).filter((file) => file.endsWith('.js')).map((file) => file.slice(0, -3)))
   : new Set();
 // The pages that are tools rather than a component: no component preview of their own.
-const TOOL_PAGES = ['/themes/', '/studio/', '/compose/'];
+const TOOL_PAGES = ['/themes/', '/studio/', '/compose/', '/showcase/'];
 async function open(path, { context } = {}) {
   const page = await (context ?? browser).newPage();
   if (ELEMENTS.size) {
@@ -436,4 +436,42 @@ test('page composer: add, change, move and remove; the theme and mode apply; the
   assert.ok(shared.hash.startsWith('#page='));
   assert.deepEqual(problems, []);
   await context.close();
+});
+
+test('showcase: three apps in three themes, and each one works', async () => {
+  const { page, problems } = await open('/showcase/');
+  assert.deepEqual(await page.locator('section.look').evaluateAll((sections) => sections.map((section) => section.dataset.theme)), ['paper', 'candy', 'terminal']);
+  const toast = page.locator('toast-region');
+  // The file manager: a menu command, the tree, and a right-click on a file.
+  await page.getByRole('menubar', { name: 'File manager' }).getByRole('menuitem', { name: 'Edit' }).click();
+  await page.getByRole('menuitem', { name: 'Duplicate' }).click();
+  await toast.getByText('Duplicate').waitFor();
+  await page.getByRole('treeitem', { name: 'Photos' }).click();
+  await page.getByRole('treeitem', { name: 'Launch day' }).waitFor();
+  await page.getByText('budget-2026.xlsx').click({ button: 'right' });
+  await page.getByRole('menu', { name: 'File actions' }).getByRole('menuitem', { name: 'Share…' }).click();
+  await toast.getByText('Share').waitFor();
+  // The booking page: the form submits its native fields.
+  await page.getByLabel('Your name').fill('Sam');
+  await page.getByRole('button', { name: 'Book the class' }).click();
+  await toast.getByText('Booked 2 for 2026-12-12 at 10:30').waitFor();
+  // The console: a question before the restart.
+  await page.getByRole('button', { name: 'Restart the API…' }).click();
+  await page.getByRole('alertdialog', { name: 'Restart the API?' }).getByRole('button', { name: 'Restart now' }).click();
+  await toast.getByText('Restarting the API').waitFor();
+  assert.deepEqual(problems, []);
+  await page.close();
+});
+
+test('every page names the social card, and the card is a 1200 by 630 PNG', () => {
+  const pages = ['index.html', 'showcase/index.html', 'components/tree-view/index.html'];
+  for (const path of pages) {
+    const html = readFileSync(join(root, 'dist', path), 'utf8');
+    assert.match(html, /<meta property="og:image" content="[^"]+\/assets\/og\.png">/, path);
+    assert.match(html, /<meta property="og:title" content="[^"]+">/, path);
+    assert.match(html, /<meta name="twitter:card" content="summary_large_image">/, path);
+  }
+  const png = readFileSync(join(root, 'dist/assets/og.png'));
+  assert.equal(png.subarray(1, 4).toString(), 'PNG');
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1200, 630]);
 });

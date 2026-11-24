@@ -118,6 +118,7 @@ npx zubra-imager photos/          # writes gallery/: AVIF, WebP and JPEG at 480,
 npm install
 npm run build     # dist/: compiled components, plain elements, registry items, themes (and scoped themes from themes/sets/)
 npm run serve     # http://127.0.0.1:4174/r/registry.json
+npm run og        # site/assets/og.png, the social card, from dist/og/ (build first, and again after)
 npm test          # builds, then installs components with the real shadcn CLI into fresh projects
 ```
 

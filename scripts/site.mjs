@@ -133,6 +133,15 @@ function frame({ prefix, title, description, current, body, scripts = [] }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escape(title)}</title>
   <meta name="description" content="${escape(description)}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Zubra UI">
+  <meta property="og:title" content="${escape(title)}">
+  <meta property="og:description" content="${escape(description)}">
+  <meta property="og:image" content="${baseUrl}/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Zubra UI: accessible Web Components you copy in and own, shown as a segmented control, a toggle, a meter and a star rating.">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="${prefix}assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="${prefix}assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="${prefix}themes/default.css">
@@ -185,6 +194,7 @@ function frame({ prefix, title, description, current, body, scripts = [] }) {
       <a class="side-home" href="${prefix}themes/"${current === 'themes' ? ' aria-current="page"' : ''}>Themes</a>
       <a class="side-home" href="${prefix}studio/"${current === 'studio' ? ' aria-current="page"' : ''}>Theme studio</a>
       <a class="side-home" href="${prefix}compose/"${current === 'compose' ? ' aria-current="page"' : ''}>Page composer</a>
+      <a class="side-home" href="${prefix}showcase/"${current === 'showcase' ? ' aria-current="page"' : ''}>Showcase</a>
       ${nav}
     </nav>
     <main id="main" tabindex="-1">
@@ -351,6 +361,124 @@ write('themes/index.html', frame({
   body: themesBody,
   scripts: [`  <script type="module">
 ${LOOK_COMPONENTS.map((name) => `    import '../preview/${name}.js';`).join('\n')}
+  </script>`],
+}));
+
+// ---- the showcase: three small apps, each in its own theme, made only of the library's components
+
+const SHOWCASE_COMPONENTS = ['menu-bar', 'tool-bar', 'action-button', 'search-field', 'split-panel', 'tree-view', 'context-menu', 'status-badge', 'slide-carousel', 'content-card', 'text-field', 'date-field', 'time-field', 'quantity-stepper', 'color-picker', 'copy-button', 'divider-line', 'stat-card', 'meter-bar', 'line-chart', 'sortable-list', 'alert-dialog', 'toast-region'];
+const SHOWCASE = [
+  { id: 'files', theme: 'paper', title: 'A file manager', text: 'A menu bar, a toolbar, a tree beside a resizable pane, and a right-click menu on every file. All of it works from the keyboard.' },
+  { id: 'booking', theme: 'candy', title: 'A class booking page', text: 'A carousel of classes and a form on native fields: the date and time pickers are the device\'s own.' },
+  { id: 'console', theme: 'terminal', title: 'An operations console', text: 'Numbers, meters, a chart, a queue to put in order, and a question before anything drastic.' },
+];
+const showcaseApps = {
+  files: `<div class="show-app show-files">
+              <menu-bar id="show-menus" label="File manager"></menu-bar>
+              <div class="show-row">
+                <tool-bar label="File actions"><action-button variant="ghost" size="sm">New folder</action-button><action-button variant="ghost" size="sm">Upload</action-button><hr><action-button variant="ghost" size="sm">Share</action-button><action-button variant="ghost" size="sm" disabled>Restore</action-button></tool-bar>
+                <search-field label="Search files" hide-label placeholder="Search files" debounce="300"></search-field>
+              </div>
+              <split-panel label="Resize the folder list" position="34" min="22" max="60">
+                <tree-view slot="start" id="show-tree" label="Folders"></tree-view>
+                <context-menu slot="end" id="show-context" label="File actions">
+                  <ul class="show-list" aria-label="Files in Reports">
+                    <li tabindex="0"><span>quarterly-report.pdf</span><status-badge variant="success">Shared</status-badge></li>
+                    <li tabindex="0"><span>budget-2026.xlsx</span><status-badge variant="outline">Private</status-badge></li>
+                    <li tabindex="0"><span>launch-notes.md</span><status-badge variant="warning">Draft</status-badge></li>
+                    <li tabindex="0"><span>team-photo.jpg</span><status-badge variant="outline">Private</status-badge></li>
+                  </ul>
+                  <p class="show-hint">Right-click a file, or focus one and press the menu key.</p>
+                </context-menu>
+              </split-panel>
+            </div>`,
+  booking: `<div class="show-app show-booking">
+              <slide-carousel label="This month's classes" loop>
+                <content-card heading="Wheel throwing" aria-label="Wheel throwing"><p>Centre the clay, pull a wall, and take home a bowl. Saturdays, two hours.</p><span slot="footer">6 places left</span></content-card>
+                <content-card heading="Hand building" aria-label="Hand building"><p>Pinch pots, coils and slabs. No wheel, no rush. Wednesday evenings.</p><span slot="footer">3 places left</span></content-card>
+                <content-card heading="Glazing day" aria-label="Glazing day"><p>Bring your fired pieces and learn dipping, pouring and wax resist.</p><span slot="footer">9 places left</span></content-card>
+              </slide-carousel>
+              <form class="show-form" id="show-book">
+                <text-field label="Your name" name="name" autocomplete="off" required></text-field>
+                <div class="show-pair">
+                  <date-field label="Day" name="day" min="2026-12-01" value="2026-12-12" required></date-field>
+                  <time-field label="Start" name="start" min="09:00" max="17:00" step="1800" value="10:30" required></time-field>
+                </div>
+                <div class="show-pair">
+                  <quantity-stepper label="Places" name="places" value="2" min="1" max="6"></quantity-stepper>
+                  <color-picker label="Glaze colour" name="glaze" value="#e879a6"></color-picker>
+                </div>
+                <divider-line label="then"></divider-line>
+                <div class="show-actions"><action-button type="submit">Book the class</action-button><copy-button value="https://example.com/classes/wheel-throwing" label="Copy the class link" variant="ghost"></copy-button></div>
+              </form>
+            </div>`,
+  console: `<div class="show-app show-console">
+              <div class="show-stats">
+                <stat-card label="Requests / min" value="18,420" period="vs last hour" change="4.2"></stat-card>
+                <stat-card label="Error rate" value="0.31%" period="vs last hour" change="-12.5"></stat-card>
+                <stat-card label="p95 latency" value="212 ms" period="vs last hour" change="1.8"></stat-card>
+              </div>
+              <div class="show-pair">
+                <div class="show-stack">
+                  <meter-bar id="show-disk" label="Disk" unit=" GB" value="412" max="500" low="250" high="400" optimum="100"></meter-bar>
+                  <meter-bar id="show-memory" label="Memory" unit=" GB" value="21" max="64" low="32" high="52" optimum="10"></meter-bar>
+                  <line-chart id="show-latency" label="Latency, last 12 hours"></line-chart>
+                </div>
+                <div class="show-stack">
+                  <sortable-list id="show-queue" label="Incident queue, most urgent first"></sortable-list>
+                  <div class="show-actions"><action-button variant="destructive" id="show-restart">Restart the API…</action-button></div>
+                </div>
+              </div>
+              <alert-dialog id="show-confirm" label="Restart the API?" confirm-label="Restart now" cancel-label="Not yet" destructive><p>About 40 seconds of failed requests while it comes back. 1,203 people are signed in.</p></alert-dialog>
+            </div>`,
+};
+const showcaseBody = `      <section class="themes-page showcase-page">
+        <h1>Showcase</h1>
+        <p class="lead">Three small apps, each in a different theme, each made only of this library's components and a little layout CSS. Nothing here is a screenshot: use the keyboard, right-click, drag the bars.</p>
+${SHOWCASE.map((app) => {
+  const theme = themeIndex.find((entry) => entry.name === app.theme);
+  return `        <section class="look" data-theme="${app.theme}" aria-labelledby="show-${app.id}">
+          <div class="look-inner">
+            <div class="look-head"><h2 id="show-${app.id}">${escape(app.title)}</h2><status-badge variant="outline">${escape(theme.label)} theme</status-badge></div>
+            <p class="look-description">${escape(app.text)}</p>
+            ${showcaseApps[app.id]}
+          </div>
+        </section>`;
+}).join('\n')}
+        <toast-region label="Showcase messages"></toast-region>
+        <h2 id="more">A bigger one</h2>
+        <p><a href="https://open-parlor.up.railway.app/">open.parlor</a> is a site of 94 games built on Zubra, where React, Vue, Svelte, Solid and Angular share one set of components.</p>
+      </section>`;
+write('showcase/index.html', frame({
+  prefix: '../',
+  title: 'Showcase · Zubra UI',
+  description: 'Three small apps in three themes, built only from Zubra UI components: a file manager, a booking page and an operations console.',
+  current: 'showcase',
+  body: showcaseBody,
+  scripts: [`  <script type="module">
+${SHOWCASE_COMPONENTS.map((name) => `    import '../preview/${name}.js';`).join('\n')}
+    const $ = (id) => document.getElementById(id);
+    const say = (message) => document.dispatchEvent(new CustomEvent('toast', { detail: { message } }));
+    $('show-menus').menus = [
+      { label: 'File', items: [{ value: 'New folder', label: 'New folder', shortcut: 'Ctrl N' }, { value: 'Upload', label: 'Upload…' }, { separator: true }, { value: 'Download', label: 'Download' }] },
+      { label: 'Edit', items: [{ value: 'Rename', label: 'Rename', shortcut: 'F2' }, { value: 'Duplicate', label: 'Duplicate' }, { value: 'Paste', label: 'Paste', disabled: true }] },
+      { label: 'View', items: [{ value: 'List view', label: 'As a list' }, { value: 'Grid view', label: 'As a grid' }] },
+    ];
+    $('show-menus').addEventListener('itemselect', (event) => say(event.detail));
+    $('show-tree').items = [
+      { id: 'documents', label: 'Documents', children: [{ id: 'reports', label: 'Reports' }, { id: 'contracts', label: 'Contracts' }] },
+      { id: 'photos', label: 'Photos', children: [{ id: 'team', label: 'Team' }, { id: 'launch', label: 'Launch day' }] },
+      { id: 'archive', label: 'Archive' },
+    ];
+    $('show-tree').expanded = ['documents'];
+    $('show-tree').value = 'reports';
+    $('show-context').items = [{ value: 'Open', label: 'Open' }, { value: 'Rename', label: 'Rename', shortcut: 'F2' }, { value: 'Share', label: 'Share…' }, { separator: true }, { value: 'Delete', label: 'Delete', danger: true }];
+    $('show-context').addEventListener('itemselect', (event) => say(event.detail));
+    $('show-book').addEventListener('submit', (event) => { event.preventDefault(); const data = new FormData(event.target); say('Booked ' + data.get('places') + ' for ' + data.get('day') + ' at ' + data.get('start')); });
+    $('show-latency').points = [188, 192, 201, 197, 240, 262, 231, 218, 209, 204, 215, 212];
+    $('show-queue').items = [{ id: 'checkout', label: 'Checkout timeouts in eu-west' }, { id: 'emails', label: 'Receipts arriving twice' }, { id: 'search', label: 'Search index is an hour behind' }, { id: 'avatars', label: 'Avatars missing on mobile' }];
+    $('show-restart').addEventListener('click', () => ($('show-confirm').open = true));
+    $('show-confirm').addEventListener('confirm', () => say('Restarting the API'));
   </script>`],
 }));
 
@@ -544,4 +672,51 @@ write('llms.txt', [
   }),
   '',
 ].join('\n'));
+
+// ---- the social card: a 1200 by 630 page of real components, which scripts/og.mjs photographs
+// into site/assets/og.png (the og:image every page names). Not linked from the site.
+const OG_COMPONENTS = ['toggle-switch', 'segmented-control', 'meter-bar', 'action-button', 'status-badge', 'star-rating'];
+write('og/index.html', `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <title>Zubra UI social card</title>
+  <link rel="stylesheet" href="../themes/default.css">
+  <link rel="stylesheet" href="../assets/site.css">
+  <script type="importmap">${importMap('../')}</script>
+  <style>
+    html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+    body { display: grid; grid-template-columns: 1fr 470px; align-items: center; gap: 56px; box-sizing: border-box; padding: 64px 72px; background: radial-gradient(900px 500px at 85% 20%, #2b3170 0%, transparent 60%), #14161f; color: #f2f3f8; font-family: "Instrument Sans", system-ui, sans-serif; }
+    .og-brand { display: flex; align-items: center; gap: 16px; font-size: 34px; font-weight: 650; letter-spacing: -0.01em; }
+    .og-brand svg { width: 52px; height: 52px; color: #f2f3f8; }
+    h1 { margin: 44px 0 0; font-size: 68px; line-height: 1.04; letter-spacing: -0.03em; font-weight: 700; }
+    h1 em { font-style: normal; color: #8b95ff; }
+    .og-lead { margin: 26px 0 0; font-size: 27px; line-height: 1.4; color: #b9bdd0; }
+    .og-stacks { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+    .og-stacks span { padding: 7px 16px; border: 1px solid #3a3f55; border-radius: 999px; font-size: 20px; font-weight: 550; color: #dfe2f0; }
+    .og-card { display: grid; gap: 22px; padding: 30px; border-radius: 22px; background: var(--background); color: var(--foreground); box-shadow: 0 30px 80px #00000080; rotate: 2deg; }
+    .og-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="og-brand"><svg viewBox="0 0 96 96" aria-hidden="true"><path fill="currentColor" d="M10 15 a5 5 0 0 1 5 -5 H81 a5 5 0 0 1 5 5 V27 H10 Z"/><path fill="currentColor" d="M10 69 H86 V81 a5 5 0 0 1 -5 5 H15 a5 5 0 0 1 -5 -5 Z"/><path fill="#8b95ff" d="M54 27 H86 L42 69 H10 Z"/></svg>Zubra UI</div>
+    <h1>Web Components you <em>copy in and own</em>.</h1>
+    <p class="og-lead">${components.length} accessible components for plain HTML or any framework.</p>
+    <div class="og-stacks"><span>HTML</span><span>React</span><span>Vue</span><span>Svelte</span><span>Angular</span></div>
+  </div>
+  <div class="og-card">
+    <div class="og-row"><segmented-control id="og-range" label="Range"></segmented-control><status-badge variant="success" dot>Live</status-badge></div>
+    <toggle-switch label="Email notifications" description="A summary of your week, every Monday." checked></toggle-switch>
+    <meter-bar label="Storage used" unit=" GB" value="312" max="500" low="250" high="400" optimum="100"></meter-bar>
+    <div class="og-row"><star-rating label="Rating" value="4"></star-rating><action-button>Save changes</action-button></div>
+  </div>
+  <script type="module">
+${OG_COMPONENTS.map((name) => `    import '../preview/${name}.js';`).join('\n')}
+    Object.assign(document.getElementById('og-range'), { options: [{ value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }, { value: 'year', label: 'Year' }], value: 'month' });
+  </script>
+</body>
+</html>
+`);
 console.log(`site: ${components.length} component pages and the home page in ${out}`);

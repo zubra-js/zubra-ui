@@ -535,7 +535,7 @@ export const demos = {
     attrs: { label: 'Text formatting' },
     props: {},
     events: [],
-    html: '<action-button variant="ghost" size="sm">Bold</action-button>\n<action-button variant="ghost" size="sm">Italic</action-button>\n<action-button variant="ghost" size="sm">Underline</action-button>\n<hr>\n<action-button variant="ghost" size="sm">Link</action-button>\n<action-button variant="ghost" size="sm" disabled>Image</action-button>\n<action-button variant="ghost" size="sm">Quote</action-button>',
+    html: '<action-button variant="ghost" size="sm">Bold</action-button>\n<action-button variant="ghost" size="sm">Italic</action-button>\n<action-button variant="ghost" size="sm">Underline</action-button>\n<hr />\n<action-button variant="ghost" size="sm">Link</action-button>\n<action-button variant="ghost" size="sm" disabled>Image</action-button>\n<action-button variant="ghost" size="sm">Quote</action-button>',
   },
   'context-menu': {
     attrs: { label: 'File actions' },
@@ -550,7 +550,7 @@ export const demos = {
       ],
     },
     events: ['itemselect'],
-    html: '<div class="demo-box" tabindex="0">quarterly-report.pdf<br><small>Right-click, long-press, or press the menu key</small></div>',
+    html: '<div class="demo-box" tabindex="0">quarterly-report.pdf<br /><small>Right-click, long-press, or press the menu key</small></div>',
   },
   'menu-bar': {
     attrs: { label: 'Document' },
@@ -572,7 +572,7 @@ export const demos = {
     attrs: { label: 'Resize the file list' },
     props: { position: 35, min: 20, max: 70 },
     events: ['positionchange'],
-    html: '<div slot="start" class="demo-pane"><strong>Files</strong><br>index.html<br>about.html<br>styles.css</div>\n<div slot="end" class="demo-pane"><strong>index.html</strong><br>Drag the bar, or focus it and use the arrow keys.</div>',
+    html: '<div slot="start" class="demo-pane"><strong>Files</strong><br />index.html<br />about.html<br />styles.css</div>\n<div slot="end" class="demo-pane"><strong>index.html</strong><br />Drag the bar, or focus it and use the arrow keys.</div>',
   },
   'color-picker': {
     attrs: { label: 'Brand colour', name: 'brand' },

@@ -13,6 +13,7 @@
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/site.mjs",
     "serve": "node scripts/serve.mjs",
+    "og": "node scripts/og.mjs",
     "test": "npm run build && node --test \"test/*.test.js\" \"imager/test/*.test.js\"",
     "test:element": "npm run build && node scripts/test-element.mjs"
   },
