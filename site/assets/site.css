@@ -207,7 +207,13 @@ masonry-grid article p { margin: 0; color: var(--muted-foreground); font-size: 0
 .demo-box { padding: 0.75rem 0.9rem; border: 1px dashed color-mix(in oklab, var(--primary) 45%, var(--border)); border-radius: calc(var(--radius) - 2px); background: color-mix(in oklab, var(--primary) 6%, var(--card)); color: var(--foreground); font-size: 0.9rem; }
 .demo-chip { padding: 0.3rem 0.75rem; border-radius: 999px; background: var(--secondary); color: var(--secondary-foreground); font-size: 0.875rem; font-weight: 500; }
 .stage :is(stack-layout, cluster-layout, auto-grid, sidebar-layout, switcher-layout, reel-layout, backdrop-pattern) { inline-size: 100%; }
-.stage :is(signin-block, settings-block, pricing-block, dashboard-shell, nav-bar, hero-section, feature-grid, site-footer, faq-list, bar-chart, progress-bar, logo-cloud, newsletter-signup, data-table, testimonial-card, empty-state, file-drop) { inline-size: 100%; }
+.stage :is(signin-block, settings-block, pricing-block, dashboard-shell, nav-bar, hero-section, feature-grid, site-footer, faq-list, bar-chart, progress-bar, logo-cloud, newsletter-signup, data-table, testimonial-card, empty-state, file-drop, divider-line, meter-bar, menu-bar) { inline-size: 100%; }
+.stage tree-view { inline-size: min(100%, 20rem); }
+.stage :is(split-panel, slide-carousel) { inline-size: 100%; }
+.stage sortable-list { inline-size: min(100%, 24rem); }
+.demo-pane { padding: 0.9rem 1rem; font-size: 0.9rem; line-height: 1.6; }
+.demo-slide { padding: 1.5rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--card-foreground); }
+.demo-slide p { margin: 0.35rem 0 0; color: var(--muted-foreground); }
 .demo-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: 0.75rem; }
 .demo-stats strong { display: block; font-size: 1.5rem; }
 
@@ -364,3 +370,21 @@ main > .studio, main > .composer { max-width: 96rem; }
 .composer .code pre { max-height: 26rem; overflow: auto; }
 @media (pointer: coarse) { .composer-item { padding-top: 3.1rem; } .composer-tools { height: 2.75rem; } .composer-tools button { width: 2.75rem; height: 2.75rem; } }
 @media (prefers-reduced-motion: reduce) { .composer-frame { transition: none; } }
+
+/* ---- the showcase page */
+.show-app { display: grid; gap: 1rem; padding: clamp(0.75rem, 2vw, 1.25rem); border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); background: var(--background); color: var(--foreground); }
+.show-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.show-row search-field { flex: 1 1 12rem; max-width: 18rem; }
+.show-files split-panel { min-height: 15rem; }
+.show-files tree-view { padding: 0.5rem; }
+.show-list { display: grid; gap: 0.25rem; margin: 0; padding: 0.5rem; list-style: none; }
+.show-list li { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.5rem 0.65rem; border-radius: calc(var(--radius) - 4px); font-size: 0.925rem; }
+.show-list li:hover { background: var(--accent); }
+.show-list li:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.show-list span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.show-hint { margin: 0; padding: 0 1.15rem 0.75rem; color: var(--muted-foreground); font-size: 0.825rem; }
+.show-form, .show-stack { display: grid; gap: 1rem; align-content: start; }
+.show-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 1rem; align-items: start; }
+.show-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 0.75rem; }
+.show-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.show-booking content-card p { margin: 0 0 0.5rem; }

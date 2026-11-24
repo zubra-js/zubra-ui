@@ -1,0 +1,33 @@
+<!--
+  A row of controls that is one stop for the Tab key: buttons for formatting, a view switch,
+  actions on a selection. Put the controls inside. Tab enters the toolbar at the control used
+  last, the arrow keys move among them (Left and Right, or Up and Down when
+  `orientation="vertical"`), Home and End jump to the ends, and Tab leaves. Disabled controls are
+  skipped. `label` names the group for screen readers. A <divider-line> or <hr> inside separates
+  groups.
+  @slot - The controls: buttons, links, toggles.
+-->
+<script lang="ts">
+  declare const orientation: "horizontal" | "vertical";
+  import { effect } from '@zubra/runtime'
+  import { rovingFocus } from '@zubra/runtime/primitives'
+
+  let bar = null
+  // The real controls, wherever they sit: inside a component (action-button's own <button>) or bare.
+  const CONTROLS = ":is(button, a[href], input, select, [role=button], [role=checkbox], [role=radio], [role=switch]):not([type=hidden])"
+  effect(() => {
+    if (!bar) return
+    return rovingFocus(bar, { selector: CONTROLS, orientation, loop: true })
+  })
+</script>
+<style>
+  :host { display: block; }
+  :host([orientation="vertical"]) { display: inline-block; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; padding: 0.25rem; border: 1px solid var(--border, #e4e4e7); border-radius: var(--radius, 0.625rem); background: var(--card, #fff); color: var(--card-foreground, #18181b); }
+  .toolbar-vertical { flex-direction: column; align-items: stretch; }
+  .toolbar > ::slotted(hr) { flex: none; width: 1px; height: 1.4rem; margin: 0 0.25rem; border: 0; background: var(--border, #e4e4e7); }
+  .toolbar-vertical > ::slotted(hr) { width: auto; height: 1px; margin: 0.25rem 0; }
+</style>
+<tool-bar label="Toolbar" orientation="horizontal">
+  <div ref={bar} class="toolbar toolbar-{orientation}" role="toolbar" aria-label={label} aria-orientation={orientation}><zb-slot></zb-slot></div>
+</tool-bar>

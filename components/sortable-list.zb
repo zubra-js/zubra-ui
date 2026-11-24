@@ -1,0 +1,129 @@
+<!--
+  A list the visitor puts in order: priorities, a playlist, steps. Drag an item by its handle, or
+  use the keyboard: focus a handle, press Space or Enter to pick the item up, the arrow keys to
+  move it, Space or Enter to put it down, and Escape to put it back where it was. Every step is
+  announced to screen readers ("Moved to position 2 of 4"). `items` is `[{ id, label }]` and is
+  two-way: it's the list in its new order.
+  @fires itemschange - The order changed; `detail` is the items in their new order.
+  @fires reorder - An item was put down somewhere new; `detail` is `{ id, from, to }` (indexes from 0).
+-->
+<script>
+  import { emit } from '@zubra/runtime'
+
+  let list = null
+  // The id of the item being moved by keyboard, and the order to go back to on Escape.
+  let held = null
+  let before = null
+  let heldFrom = -1
+  // The id of the item being dragged by pointer.
+  let dragged = null
+  let said = ""
+
+  const at = (id) => items.findIndex((item) => item.id === id)
+  const name = (id) => items.find((item) => item.id === id)?.label ?? ""
+  const handle = (id) => [...list.querySelectorAll(".sortable-handle")].find((button) => button.dataset.id === String(id))
+  function shift(id, to) {
+    const from = at(id)
+    if (from < 0 || to < 0 || to >= items.length || to === from) return false
+    const next = [...items]
+    next.splice(to, 0, next.splice(from, 1)[0])
+    items = next
+    return true
+  }
+  function pick(id) {
+    held = id
+    before = items
+    heldFrom = at(id)
+    said = `${name(id)} picked up. Position ${heldFrom + 1} of ${items.length}. Use the arrow keys to move it, Space to put it down, Escape to cancel.`
+  }
+  function drop() {
+    const to = at(held)
+    said = `${name(held)} put down at position ${to + 1} of ${items.length}.`
+    if (to !== heldFrom) emit("reorder", { id: held, from: heldFrom, to })
+    held = null
+    before = null
+  }
+  function cancel() {
+    const id = held
+    said = `${name(id)} put back at position ${heldFrom + 1}.`
+    items = before
+    held = null
+    before = null
+    queueMicrotask(() => handle(id)?.focus())
+  }
+  function keys(event, id) {
+    if (disabled) return
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault()
+      if (held === id) drop()
+      else pick(id)
+    } else if (held === id && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+      event.preventDefault()
+      if (shift(id, at(id) + (event.key === "ArrowDown" ? 1 : -1))) {
+        said = `Moved to position ${at(id) + 1} of ${items.length}.`
+        queueMicrotask(() => handle(id)?.focus())
+      }
+    } else if (held === id && event.key === "Escape") {
+      event.preventDefault()
+      cancel()
+    }
+  }
+  function left(id) {
+    if (held === id) drop()
+  }
+  function pressed(event, id) {
+    if (disabled || event.button !== 0) return
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    event.currentTarget.focus()
+    if (held != null) drop()
+    dragged = id
+    heldFrom = at(id)
+  }
+  // The dragged item takes the place of whichever row the pointer is over.
+  function moved(event) {
+    if (dragged == null) return
+    const rows = [...list.children]
+    const over = rows.findIndex((row) => {
+      const box = row.getBoundingClientRect()
+      return event.clientY >= box.top && event.clientY < box.bottom
+    })
+    if (over >= 0 && shift(dragged, over)) queueMicrotask(() => handle(dragged)?.focus())
+  }
+  function released() {
+    if (dragged == null) return
+    const to = at(dragged)
+    if (to !== heldFrom) {
+      said = `${name(dragged)} moved to position ${to + 1} of ${items.length}.`
+      emit("reorder", { id: dragged, from: heldFrom, to })
+    }
+    dragged = null
+  }
+</script>
+<style>
+  :host { display: block; }
+  ol { display: grid; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+  li { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.75rem 0.5rem 0.4rem; border: 1px solid var(--border, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) - 2px); background: var(--card, #fff); color: var(--card-foreground, #18181b); font-size: 0.925rem; transition: box-shadow var(--duration-fast, 150ms), border-color var(--duration-fast, 150ms); }
+  .sortable-held { border-color: var(--ring, #a1a1aa); box-shadow: 0 6px 18px #0d122026; }
+  .sortable-handle { flex: none; display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 0; border-radius: calc(var(--radius, 0.625rem) - 4px); background: none; color: var(--muted-foreground, #71717a); cursor: grab; touch-action: none; }
+  .sortable-handle:hover { background: var(--accent, #f4f4f5); color: var(--foreground, #18181b); }
+  .sortable-handle:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 1px; }
+  .sortable-handle:disabled { opacity: 0.45; cursor: not-allowed; }
+  .sortable-held .sortable-handle { cursor: grabbing; color: var(--foreground, #18181b); }
+  .sortable-label { min-width: 0; }
+  .sortable-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; } }
+</style>
+<sortable-list items:model={[]} label="Sortable list" disabled={false}>
+  <ol ref={list} aria-label={label}>
+    <zb-each items={items} as="item" key={item.id}>
+      <li class:sortable-held={held === item.id || dragged === item.id}>
+        <button type="button" class="sortable-handle" data-id={item.id} aria-label={`Move ${item.label}`} aria-pressed={held === item.id ? "true" : "false"} disabled={disabled} onkeydown={(event) => keys(event, item.id)} onblur={() => left(item.id)} onpointerdown={(event) => pressed(event, item.id)} onpointermove={moved} onpointerup={released} onpointercancel={released}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg>
+        </button>
+        <span class="sortable-label">{item.label}</span>
+      </li>
+    </zb-each>
+  </ol>
+  <span class="sortable-status" role="status">{said}</span>
+</sortable-list>

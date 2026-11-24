@@ -84,12 +84,13 @@ A theme is a JSON file in `themes/sets/` that `extends` another and lists only w
 
 ## The components
 
-81, each tested for its roles, accessible names and keyboard behaviour. They include:
+96, each tested for its roles, accessible names and keyboard behaviour. They include:
 - form controls: toggle switch, star rating, choice cards, colour swatches, money input, quantity stepper, tag input, date range, segmented control;
 - widgets: tabs, dropdown menu, combobox (with Zag.js), tooltip, accordion, modal dialog, flip card, step indicator;
 - display: line, donut and spark line charts, progress ring, streak grid, an image gallery with a lightbox, and a masonry grid;
 - layout: stack, cluster, sidebar and auto grid, which adapt to their space with no media queries;
 - app pieces: chat message, message composer, kanban column.
+- application controls: menu bar, context menu, toolbar, tree view, split panel, alert dialog, sortable list, carousel, colour picker, and password, search and time fields;
 - motion: reveal on scroll, number ticker, word rotate, marquee strip, shine border, spotlight card, tilt card, typing text, shimmer button;
 - blocks, which are components made of components: sign in, settings, pricing, and a dashboard shell. `npx shadcn add` on a block brings the components it uses.
 
@@ -117,6 +118,7 @@ npx zubra-imager photos/          # writes gallery/: AVIF, WebP and JPEG at 480,
 npm install
 npm run build     # dist/: compiled components, plain elements, registry items, themes (and scoped themes from themes/sets/)
 npm run serve     # http://127.0.0.1:4174/r/registry.json
+npm run og        # site/assets/og.png, the social card, from dist/og/ (build first, and again after)
 npm test          # builds, then installs components with the real shadcn CLI into fresh projects
 ```
 

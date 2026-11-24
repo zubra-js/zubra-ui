@@ -1,0 +1,108 @@
+<!--
+  A row of slides, one in view at a time: photos, testimonials, onboarding steps. Put the slides
+  inside. It scrolls natively, so a swipe, a trackpad or the scrollbar all work, and each slide
+  snaps into place. Previous and Next buttons step through; the dots jump to a slide and show
+  which is current. Each slide is announced as "2 of 5". With `autoplay` (milliseconds) it
+  advances by itself, with a pause button, and stops while it's hovered or focused, and for
+  visitors who asked for less motion. `index` is two-way.
+  @slot - The slides, one element each.
+  @fires indexchange - Another slide came into view; `detail` is its index, from 0.
+-->
+<script>
+  import { effect, onMount } from '@zubra/runtime'
+
+  let track = null
+  let count = 0
+  let paused = false
+  // Hovered or focused: autoplay waits.
+  let busy = false
+  const still = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches
+  const playing = autoplay > 0 && !paused && !still
+  const dots = Array.from({ length: count }, (unused, at) => at)
+  const last = Math.max(count - 1, 0)
+
+  const slides = () => [...track.children]
+  function go(to) {
+    const target = loop ? ((to % count) + count) % count : Math.min(Math.max(to, 0), last)
+    const slide = slides()[target]
+    if (!slide) return
+    track.scrollTo({ left: slide.offsetLeft - track.offsetLeft, behavior: still ? "auto" : "smooth" })
+  }
+  // The slide nearest the track's left edge is the current one.
+  function scrolled() {
+    const all = slides()
+    if (!all.length) return
+    let nearest = 0
+    all.forEach((slide, at) => {
+      if (Math.abs(slide.offsetLeft - track.offsetLeft - track.scrollLeft) < Math.abs(all[nearest].offsetLeft - track.offsetLeft - track.scrollLeft)) nearest = at
+    })
+    if (nearest !== index) index = nearest
+  }
+  function number() {
+    const all = slides()
+    count = all.length
+    all.forEach((slide, at) => {
+      slide.setAttribute("role", "group")
+      slide.setAttribute("aria-roledescription", "slide")
+      if (!slide.hasAttribute("data-label")) slide.setAttribute("data-label", slide.getAttribute("aria-label") ?? "")
+      const own = slide.getAttribute("data-label")
+      slide.setAttribute("aria-label", `${own ? `${own}, ` : ""}${at + 1} of ${all.length}`)
+    })
+  }
+
+  onMount(() => {
+    number()
+    const watch = new MutationObserver(number)
+    watch.observe(track, { childList: true })
+    if (index > 0) track.scrollTo({ left: (slides()[index]?.offsetLeft ?? 0) - track.offsetLeft })
+    return () => watch.disconnect()
+  })
+  // `index` set from outside: bring that slide into view.
+  effect(() => {
+    if (!track || !count) return
+    const slide = slides()[index]
+    if (slide && Math.abs(slide.offsetLeft - track.offsetLeft - track.scrollLeft) > 2) go(index)
+  })
+  effect(() => {
+    if (!playing || busy || count < 2) return
+    const timer = setInterval(() => go(index + 1 > last ? 0 : index + 1), autoplay)
+    return () => clearInterval(timer)
+  })
+</script>
+<style>
+  :host { display: block; }
+  .carousel { display: grid; gap: 0.6rem; }
+  .carousel-track { display: flex; gap: var(--carousel-gap, 1rem); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: var(--radius, 0.625rem); overscroll-behavior-x: contain; }
+  .carousel-track::-webkit-scrollbar { display: none; }
+  .carousel-track:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 2px; }
+  .carousel-track > ::slotted(*) { flex: 0 0 100%; box-sizing: border-box; min-width: 0; scroll-snap-align: start; }
+  .carousel-controls { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .carousel-step, .carousel-pause { display: inline-grid; place-items: center; min-width: 2.25rem; height: 2.25rem; padding: 0 0.5rem; border: 1px solid var(--border, #e4e4e7); border-radius: 999px; background: var(--background, #fff); color: var(--foreground, #18181b); font: inherit; font-size: 0.825rem; font-weight: 600; cursor: pointer; }
+  .carousel-step:hover, .carousel-pause:hover { background: var(--accent, #f4f4f5); }
+  .carousel-step:disabled { opacity: 0.45; cursor: default; }
+  button:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 2px; }
+  .carousel-dots { display: flex; gap: 0.15rem; }
+  .carousel-dot { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+  .carousel-dot::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: color-mix(in oklab, var(--muted-foreground, #71717a) 55%, transparent); transition: scale var(--duration-fast, 150ms), background-color var(--duration-fast, 150ms); }
+  .carousel-dot[aria-current=true]::before { background: var(--primary, #18181b); scale: 1.35; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; scroll-behavior: auto !important; } }
+</style>
+<slide-carousel index:model={0} label="Carousel" loop={false} autoplay={0}>
+  <section class="carousel" aria-roledescription="carousel" aria-label={label} onpointerenter={() => (busy = true)} onpointerleave={() => (busy = false)} onfocusin={() => (busy = true)} onfocusout={() => (busy = false)}>
+    <div ref={track} class="carousel-track" tabindex="0" aria-live={playing ? "off" : "polite"} onscroll={scrolled}><zb-slot></zb-slot></div>
+    <div class="carousel-controls">
+      <button zb-if={autoplay > 0 && !still} type="button" class="carousel-pause" aria-pressed={paused ? "true" : "false"} onclick={() => (paused = !paused)}>{paused ? "Play" : "Pause"}</button>
+      <button type="button" class="carousel-step" aria-label="Previous slide" disabled={!loop && index <= 0} onclick={() => go(index - 1)}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"></path></svg>
+      </button>
+      <div class="carousel-dots">
+        <zb-each items={dots} as="dot" key={dot}>
+          <button type="button" class="carousel-dot" aria-label={`Slide ${dot + 1}`} aria-current={dot === index ? "true" : "false"} onclick={() => go(dot)}></button>
+        </zb-each>
+      </div>
+      <button type="button" class="carousel-step" aria-label="Next slide" disabled={!loop && index >= last} onclick={() => go(index + 1)}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>
+      </button>
+    </div>
+  </section>
+</slide-carousel>

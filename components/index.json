@@ -742,6 +742,141 @@
         "word-rotate.zb"
       ],
       "dependencies": []
+    },
+    {
+      "name": "copy-button",
+      "category": "widget",
+      "description": "A button that copies `value` to the clipboard, then says \"Copied\" for a moment, to sighted visitors and screen readers alike. If the browser refuses, it says so and copies nothing. Fires `copy` with the text.",
+      "files": [
+        "copy-button.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "divider-line",
+      "category": "display",
+      "description": "A line between two groups of content, across or down, with optional text in the middle (\"or\", \"Today\"). A separator to screen readers, or hidden from them with `decorative`.",
+      "files": [
+        "divider-line.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "meter-bar",
+      "category": "data",
+      "description": "A measurement inside a known range: disk used, a password's strength, a battery. `low`, `high` and `optimum` work as on the native <meter>, and the band's name is written beside the value, so colour is never the only signal.",
+      "files": [
+        "meter-bar.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "password-field",
+      "category": "input",
+      "description": "A labelled password field on a native <input>: it submits under its `name`, works with password managers, and validates as the browser's own. A button shows or hides what was typed, and the field warns when Caps Lock is on. `value` is two-way.",
+      "files": [
+        "password-field.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "search-field",
+      "category": "input",
+      "description": "A search box on a native <input type=\"search\"> with a clear button. Enter, the clear button, or a pause of `debounce` milliseconds fires `search`; Escape clears it. `value` is two-way.",
+      "files": [
+        "search-field.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "alert-dialog",
+      "category": "app",
+      "description": "A dialog that asks one question before something that can't be undone. It has no close button and ignores clicks outside, focus starts on Cancel, and Escape cancels. `open` is two-way; it fires `confirm` or `cancel`.",
+      "files": [
+        "alert-dialog.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "tree-view",
+      "category": "navigation",
+      "description": "A tree of nested items: folders and files, a table of contents, categories. One tab stop; arrow keys move, open and close, Home and End jump, and typing a letter finds an item. `items` is `[{ id, label, children? }]`; `value` (the selected id) and `expanded` are two-way.",
+      "files": [
+        "tree-view.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "tool-bar",
+      "category": "navigation",
+      "description": "A row of controls that is one stop for the Tab key: the arrow keys move among the buttons inside, Home and End jump to the ends, and Tab leaves. For formatting buttons, view switches, and actions on a selection.",
+      "files": [
+        "tool-bar.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "context-menu",
+      "category": "widget",
+      "description": "A menu for whatever is inside it, opened by a right click, a long press, or the keyboard's menu key, where the visitor asked for it. On the platform's `popover`; arrow keys and typing move among the items. `items` is `[{ value, label, shortcut?, disabled?, danger? }]`, with `{ separator: true }` between groups.",
+      "files": [
+        "context-menu.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "menu-bar",
+      "category": "navigation",
+      "description": "An application's menu bar: File, Edit, View, each opening a menu of commands. One tab stop; Left and Right move along the bar and between open menus, Down opens, Escape returns to the bar. `menus` is `[{ label, items: [{ value, label, shortcut?, disabled? }] }]`.",
+      "files": [
+        "menu-bar.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "time-field",
+      "category": "input",
+      "description": "A labelled time of day on a native <input type=\"time\">: the device's own picker and clock format, submitted as \"HH:MM\" under its `name`. `min`, `max` and `step` limit it, and it validates as the browser's own. `value` is two-way.",
+      "files": [
+        "time-field.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "split-panel",
+      "category": "layout",
+      "description": "Two panes with a bar between them to drag, across or stacked. The bar is a focusable separator: arrow keys move it, Home and End send it to its limits, and a screen reader hears its position. `position` (the first pane's percentage) is two-way.",
+      "files": [
+        "split-panel.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "color-picker",
+      "category": "input",
+      "description": "Pick any colour: a square for how vivid and bright, a slider for the hue, and a hex field. Labelled sliders do everything the square does, for the keyboard and screen readers. A form control; `value` (a hex colour) is two-way.",
+      "files": [
+        "color-picker.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "slide-carousel",
+      "category": "display",
+      "description": "A row of slides, one in view at a time, on native scrolling with snap: swipe, or use Previous, Next and the dots. Each slide is announced as \"2 of 5\". Optional `autoplay` has a pause button and stops on hover, on focus and for reduced motion. `index` is two-way.",
+      "files": [
+        "slide-carousel.zb"
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "sortable-list",
+      "category": "input",
+      "description": "A list the visitor puts in order by dragging a handle, or from the keyboard: Space picks an item up, the arrow keys move it, Space puts it down and Escape puts it back. Every step is announced. `items` is `[{ id, label }]` and is two-way.",
+      "files": [
+        "sortable-list.zb"
+      ],
+      "dependencies": []
     }
   ]
 }

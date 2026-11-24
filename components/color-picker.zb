@@ -1,0 +1,122 @@
+<!--
+  Pick any colour: drag in the square for how vivid and how bright, slide for the hue, or type a
+  hex code. A form control: it submits its `value` (a hex colour like "#2563eb") under `name`,
+  and `value` is two-way. Everything the square does, three labelled sliders do too (hue,
+  saturation, brightness), so it works from the keyboard and with a screen reader; the colour is
+  always shown as text. For a short list of set colours, use color-swatches.
+  @fires valuechange - The colour changed; `detail` is the hex colour.
+-->
+<script>
+  import { effect, host, id } from '@zubra/runtime'
+
+  const element = host()
+  effect(() => element.toggleAttribute('disabled', disabled))
+  const hexId = id()
+  let area = null
+  let dragging = false
+  // Hue, saturation and brightness (HSV), kept here so grey and black don't lose their hue.
+  let hue = 0
+  let saturation = 0
+  let brightness = 0
+  let typed = null
+
+  const toHex = (h, s, v) => {
+    const f = (n) => {
+      const k = (n + h / 60) % 6
+      return Math.round((v / 100 - (v / 100) * (s / 100) * Math.max(0, Math.min(k, 4 - k, 1))) * 255).toString(16).padStart(2, "0")
+    }
+    return `#${f(5)}${f(3)}${f(1)}`
+  }
+  const parse = (text) => {
+    const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(text).trim())
+    if (!match) return null
+    const full = match[1].length === 3 ? match[1].replace(/./g, "$&$&") : match[1]
+    return `#${full.toLowerCase()}`
+  }
+  const toHsv = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16) / 255)
+    const top = Math.max(r, g, b)
+    const spread = top - Math.min(r, g, b)
+    const h = spread === 0 ? 0 : top === r ? ((g - b) / spread) % 6 : top === g ? (b - r) / spread + 2 : (r - g) / spread + 4
+    return { h: Math.round((h * 60 + 360) % 360), s: top === 0 ? 0 : Math.round((spread / top) * 100), v: Math.round(top * 100) }
+  }
+  const color = parse(value) ?? "#000000"
+  // `value` set from outside: take its hue, saturation and brightness, unless it's the colour already shown.
+  effect(() => {
+    const hex = parse(value)
+    if (!hex || hex === toHex(hue, saturation, brightness)) return
+    const next = toHsv(hex)
+    if (next.s > 0 && next.v > 0) hue = next.h
+    saturation = next.s
+    brightness = next.v
+  })
+  function set(h, s, v) {
+    hue = h
+    saturation = s
+    brightness = v
+    typed = null
+    const hex = toHex(h, s, v)
+    if (hex !== value) value = hex
+  }
+  function fromPointer(event) {
+    const box = area.getBoundingClientRect()
+    const x = Math.min(Math.max((event.clientX - box.left) / box.width, 0), 1)
+    const y = Math.min(Math.max((event.clientY - box.top) / box.height, 0), 1)
+    set(hue, Math.round(x * 100), Math.round((1 - y) * 100))
+  }
+  function pressed(event) {
+    if (disabled || event.button !== 0) return
+    event.preventDefault()
+    area.setPointerCapture(event.pointerId)
+    dragging = true
+    fromPointer(event)
+  }
+  function dragged(event) {
+    if (dragging) fromPointer(event)
+  }
+  function released() {
+    dragging = false
+  }
+  function typing(event) {
+    typed = event.target.value
+    const hex = parse(typed)
+    if (hex && hex !== value) value = hex
+  }
+  function settled() {
+    typed = null
+  }
+</script>
+<style>
+  :host { display: inline-block; }
+  .picker { display: grid; gap: 0.7rem; width: 15rem; max-width: 100%; margin: 0; padding: 0; border: 0; min-width: 0; }
+  legend { padding: 0; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.925rem; }
+  .picker-area { position: relative; height: 9rem; border-radius: calc(var(--radius, 0.625rem) - 2px); background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), var(--picker-hue); cursor: crosshair; touch-action: none; }
+  .picker-thumb { position: absolute; left: var(--picker-x); top: var(--picker-y); width: 1rem; height: 1rem; margin: -0.5rem; border: 2px solid #fff; border-radius: 50%; background: var(--picker-color); box-shadow: 0 0 0 1px #0006, 0 1px 3px #0006; pointer-events: none; }
+  .picker:has(.picker-hidden:focus-visible) .picker-thumb { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 2px; }
+  .picker-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .picker-hue { width: 100%; height: 0.8rem; margin: 0; border-radius: 999px; background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); appearance: none; cursor: pointer; }
+  .picker-hue::-webkit-slider-thumb { appearance: none; width: 1.1rem; height: 1.1rem; border: 2px solid #fff; border-radius: 50%; background: var(--picker-hue); box-shadow: 0 0 0 1px #0006; }
+  .picker-hue::-moz-range-thumb { width: 0.9rem; height: 0.9rem; border: 2px solid #fff; border-radius: 50%; background: var(--picker-hue); box-shadow: 0 0 0 1px #0006; }
+  .picker-hue:focus-visible { outline: 2px solid var(--ring, #a1a1aa); outline-offset: 3px; }
+  .picker-row { display: flex; align-items: center; gap: 0.5rem; }
+  .picker-chip { flex: none; width: 2.25rem; height: 2.25rem; border: 1px solid var(--border, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) - 2px); background: var(--picker-color); }
+  .picker-row label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .picker-hex { flex: 1; min-width: 0; padding: 0.45rem 0.65rem; border: 1px solid var(--input, #e4e4e7); border-radius: calc(var(--radius, 0.625rem) - 2px); background: var(--background, #fff); color: var(--foreground, #18181b); font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.875rem; }
+  .picker-hex:focus-visible { outline: none; border-color: var(--ring, #a1a1aa); box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring, #a1a1aa) 40%, transparent); }
+  .picker:disabled { opacity: 0.55; }
+  .picker:disabled .picker-area, .picker:disabled .picker-hue { cursor: not-allowed; }
+</style>
+<color-picker form-associated value:model="#2563eb" label="Colour" disabled={false}>
+  <fieldset class="picker" disabled={disabled} style:--picker-hue={`hsl(${hue} 100% 50%)`} style:--picker-color={color} style:--picker-x={`${saturation}%`} style:--picker-y={`${100 - brightness}%`}>
+    <legend>{label}</legend>
+    <div ref={area} class="picker-area" onpointerdown={pressed} onpointermove={dragged} onpointerup={released} onpointercancel={released}><span class="picker-thumb"></span></div>
+    <input class="picker-hidden" type="range" min="0" max="100" aria-label="Saturation" aria-valuetext={`${saturation}%`} value={saturation} oninput={(event) => set(hue, Number(event.target.value), brightness)}>
+    <input class="picker-hidden" type="range" min="0" max="100" aria-label="Brightness" aria-valuetext={`${brightness}%`} value={brightness} oninput={(event) => set(hue, saturation, Number(event.target.value))}>
+    <input class="picker-hue" type="range" min="0" max="359" aria-label="Hue" aria-valuetext={`${hue}°`} value={hue} oninput={(event) => set(Number(event.target.value), saturation, brightness)}>
+    <div class="picker-row">
+      <span class="picker-chip" aria-hidden="true"></span>
+      <label for={hexId}>Hex colour</label>
+      <input class="picker-hex" id={hexId} type="text" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" aria-invalid={typed != null && !parse(typed) ? "true" : "false"} value={typed ?? color} oninput={typing} onblur={settled}>
+    </div>
+  </fieldset>
+</color-picker>

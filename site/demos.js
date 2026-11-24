@@ -481,4 +481,113 @@ export const demos = {
     attrs: { type: 'button' },
     html: 'Book a class',
   },
+  'copy-button': {
+    attrs: { value: 'npx shadcn@latest add https://zubra-js.github.io/zubra-ui/r/copy-button.json', label: 'Copy install command' },
+    props: {},
+    events: ['copy'],
+  },
+  'divider-line': {
+    attrs: { label: 'or continue with email' },
+    props: {},
+    events: [],
+  },
+  'meter-bar': {
+    attrs: { label: 'Storage used', unit: ' GB' },
+    props: { value: 412, max: 500, low: 250, high: 400, optimum: 100, bandLabels: ['Plenty left', 'Filling up', 'Nearly full'] },
+    events: [],
+  },
+  'password-field': {
+    attrs: { label: 'New password', description: 'At least 12 characters. A sentence works well.', name: 'password', autocomplete: 'new-password' },
+    props: { required: true, minlength: 12 },
+    events: ['valuechange'],
+  },
+  'search-field': {
+    attrs: { label: 'Search recipes', placeholder: 'Sourdough, lemon tart…', name: 'q' },
+    props: { debounce: 300 },
+    events: ['search'],
+  },
+  'alert-dialog': {
+    attrs: { label: 'Delete this project?', 'confirm-label': 'Delete project', 'cancel-label': 'Keep it' },
+    props: { open: false, destructive: true },
+    events: ['confirm', 'cancel'],
+    html: '<p>The project and its 14 files will be deleted for everyone on the team. This can\'t be undone.</p>',
+    opener: 'Delete project…',
+  },
+  'tree-view': {
+    attrs: { label: 'Project files' },
+    props: {
+      value: 'button',
+      expanded: ['src', 'components'],
+      items: [
+        { id: 'src', label: 'src', children: [
+          { id: 'components', label: 'components', children: [{ id: 'button', label: 'action-button.zb' }, { id: 'dialog', label: 'modal-dialog.zb' }, { id: 'tabs', label: 'tab-list.zb' }] },
+          { id: 'pages', label: 'pages', children: [{ id: 'home', label: 'index.html' }, { id: 'about', label: 'about.html' }] },
+          { id: 'main', label: 'main.js' },
+        ] },
+        { id: 'tests', label: 'tests', children: [{ id: 'spec', label: 'components.test.js' }] },
+        { id: 'package', label: 'package.json' },
+        { id: 'readme', label: 'README.md' },
+      ],
+    },
+    events: ['valuechange', 'expandedchange'],
+  },
+  'tool-bar': {
+    attrs: { label: 'Text formatting' },
+    props: {},
+    events: [],
+    html: '<action-button variant="ghost" size="sm">Bold</action-button>\n<action-button variant="ghost" size="sm">Italic</action-button>\n<action-button variant="ghost" size="sm">Underline</action-button>\n<hr />\n<action-button variant="ghost" size="sm">Link</action-button>\n<action-button variant="ghost" size="sm" disabled>Image</action-button>\n<action-button variant="ghost" size="sm">Quote</action-button>',
+  },
+  'context-menu': {
+    attrs: { label: 'File actions' },
+    props: {
+      items: [
+        { value: 'open', label: 'Open' },
+        { value: 'rename', label: 'Rename', shortcut: 'F2' },
+        { value: 'duplicate', label: 'Duplicate' },
+        { value: 'move', label: 'Move to…', disabled: true },
+        { separator: true },
+        { value: 'delete', label: 'Delete', danger: true },
+      ],
+    },
+    events: ['itemselect'],
+    html: '<div class="demo-box" tabindex="0">quarterly-report.pdf<br /><small>Right-click, long-press, or press the menu key</small></div>',
+  },
+  'menu-bar': {
+    attrs: { label: 'Document' },
+    props: {
+      menus: [
+        { label: 'File', items: [{ value: 'new', label: 'New', shortcut: 'Ctrl N' }, { value: 'open', label: 'Open…', shortcut: 'Ctrl O' }, { value: 'save', label: 'Save', shortcut: 'Ctrl S' }, { separator: true }, { value: 'print', label: 'Print…' }] },
+        { label: 'Edit', items: [{ value: 'undo', label: 'Undo', shortcut: 'Ctrl Z' }, { value: 'redo', label: 'Redo', disabled: true }, { separator: true }, { value: 'cut', label: 'Cut' }, { value: 'copy', label: 'Copy' }, { value: 'paste', label: 'Paste' }] },
+        { label: 'View', items: [{ value: 'zoom-in', label: 'Zoom in' }, { value: 'zoom-out', label: 'Zoom out' }, { value: 'full', label: 'Full screen' }] },
+      ],
+    },
+    events: ['itemselect'],
+  },
+  'time-field': {
+    attrs: { label: 'Pickup time', description: 'We are open from 9 to 5:30.', name: 'pickup', min: '09:00', max: '17:30' },
+    props: { value: '14:30', required: true, step: 900 },
+    events: ['valuechange'],
+  },
+  'split-panel': {
+    attrs: { label: 'Resize the file list' },
+    props: { position: 35, min: 20, max: 70 },
+    events: ['positionchange'],
+    html: '<div slot="start" class="demo-pane"><strong>Files</strong><br />index.html<br />about.html<br />styles.css</div>\n<div slot="end" class="demo-pane"><strong>index.html</strong><br />Drag the bar, or focus it and use the arrow keys.</div>',
+  },
+  'color-picker': {
+    attrs: { label: 'Brand colour', name: 'brand' },
+    props: { value: '#7c3aed' },
+    events: ['valuechange'],
+  },
+  'slide-carousel': {
+    attrs: { label: 'What people built' },
+    props: { index: 0 },
+    events: ['indexchange'],
+    html: '<div class="demo-slide" aria-label="Bake sale planner"><strong>Bake sale planner</strong><p>Sign-ups, stalls and a running total, built in a weekend.</p></div>\n<div class="demo-slide" aria-label="Trail log"><strong>Trail log</strong><p>Hikes on a map, with photos that load as you scroll.</p></div>\n<div class="demo-slide" aria-label="Shift board"><strong>Shift board</strong><p>Who is on, who swapped, and who still owes a Saturday.</p></div>',
+  },
+  'sortable-list': {
+    attrs: { label: 'This week, in order of priority' },
+    props: { items: [{ id: 'invoice', label: 'Send the March invoice' }, { id: 'review', label: 'Review the pull request' }, { id: 'call', label: 'Call the venue' }, { id: 'plan', label: 'Plan the sprint' }] },
+    events: ['reorder'],
+  },
 };
