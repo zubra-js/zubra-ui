@@ -243,6 +243,9 @@ test('image-gallery: the manifest\'s photos, packed in reading order, with sizes
     assert.match(img.src, /\/gallery\/[\w-]+\.jpg$/, 'relative to the manifest');
     for (const candidate of img.srcset.split(', ')) assert.match(candidate, /^http:\/\/127\.0\.0\.1:\d+\/gallery\/[\w-]+\.webp \d+w$/);
   }
+  const blurred = await element.locator('.thumb').evaluateAll((list) => list.map((thumb) => thumb.style.backgroundImage));
+  manifest.items.forEach((item, i) => assert.equal(blurred[i], item.placeholder ? `url("${item.placeholder}")` : '', `${item.alt}: its placeholder is behind it`));
+  assert.ok(manifest.items.some((item) => item.placeholder), 'the demo manifest has placeholders');
   await page.waitForFunction(() => [...document.querySelectorAll('image-gallery .grid img')].every((img) => img.complete));
   const layout = await packed(page, 'image-gallery .grid > li');
   assert.equal(layout.overlap, false);
@@ -327,8 +330,7 @@ test('sidebar-layout and auto-grid follow the space they have, with no media que
 
 test('image-gallery: a photo whose srcset has an unsafe URL doesn\'t get one (Zubra 5.1\'s check)', async () => {
   const { page, element } = await open('image-gallery');
-  const messages = [];
-  page.on('console', (message) => messages.push(message.text()));
+  // Since Zubra 5.17 the production runtime reports nothing; the attribute is simply left off.
   await element.evaluate((el) => {
     el.src = '';
     el.items = [{ src: '/a.jpg', alt: 'Safe', width: 4, height: 3, srcset: '/a-480.webp 480w, /a-960.webp 960w' }, { src: '/b.jpg', alt: 'Unsafe', width: 4, height: 3, srcset: '/b.webp 480w, javascript:alert(1) 960w' }];
@@ -336,7 +338,6 @@ test('image-gallery: a photo whose srcset has an unsafe URL doesn\'t get one (Zu
   await element.locator('.grid img').nth(1).waitFor({ state: 'attached' });
   const sets = await element.locator('.grid img').evaluateAll((list) => list.map((img) => img.getAttribute('srcset')));
   assert.deepEqual(sets, ['/a-480.webp 480w, /a-960.webp 960w', null]);
-  assert.ok(messages.some((message) => message.includes('blocked an unsafe URL')));
   await page.close();
 });
 

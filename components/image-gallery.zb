@@ -20,6 +20,12 @@
   // A manifest's URLs are relative to the manifest.
   const base = src && typeof document !== "undefined" ? new URL(src, document.baseURI) : null
   const url = (path) => (base && path && !/^([a-z][a-z0-9+.-]*:|\/)/i.test(path) ? new URL(path, base).href : path)
+  // The blurred placeholder behind a thumbnail. Zubra refuses url() in a style: value and data:
+  // in src, so it is set here, and only when it is a base64 image and nothing else.
+  const PLACEHOLDER = /^data:image\/(?:webp|png|jpeg|avif|gif);base64,[A-Za-z0-9+/]+=*$/
+  const blur = (thumb, placeholder) => {
+    if (thumb) thumb.style.backgroundImage = typeof placeholder === "string" && PLACEHOLDER.test(placeholder) ? `url("${placeholder}")` : ""
+  }
   const srcset = (set) => set ? set.split(",").map((entry) => entry.trim().split(/\s+/)).map(([path, size]) => (size ? `${url(path)} ${size}` : url(path))).join(", ") : null
 
   effect(() => {
@@ -91,7 +97,7 @@
     <zb-each items={photos} as="photo" index="i" key={photo.src}>
       <li>
         <figure>
-          <button type="button" class="thumb" aria-haspopup="dialog" style:background-image={photo.placeholder ? `url("${photo.placeholder}")` : null} onclick={() => (index = i)}>
+          <button type="button" class="thumb" aria-haspopup="dialog" ref={(thumb) => blur(thumb, photo.placeholder)} onclick={() => (index = i)}>
             <img src={url(photo.src)} srcset={srcset(photo.srcset)} sizes="(max-width: 40rem) 100vw, 30rem" width={photo.width} height={photo.height} alt={photo.alt ?? ""} loading="lazy" decoding="async">
           </button>
           <figcaption zb-if={photo.caption}>{photo.caption}</figcaption>

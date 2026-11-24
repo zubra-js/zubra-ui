@@ -96,7 +96,7 @@ test('plain HTML and Vite: shadcn installs the components, their runtime and the
     assert.ok(existsSync(join(dir, file)), `${file} written`);
   }
   const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
-  assert.match(pkg.dependencies['@zubra/runtime'], /^\^5\./, 'the runtime is a dependency');
+  assert.match(pkg.dependencies['@zubra/runtime'], /^\^6\./, 'the runtime is a dependency');
   await run(npm, ['install', '--no-audit', '--no-fund', `vite@${VERSIONS.vite}`], dir);
 
   const { page, problems, close } = await open(dir);
