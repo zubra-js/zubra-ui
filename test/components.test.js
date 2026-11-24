@@ -1390,6 +1390,11 @@ test('context-menu: opens where asked, by pointer or keyboard, and gives focus b
   const placed = await menu.boundingBox();
   assert.ok(Math.abs(placed.x - (box.x + 30)) < 2 && Math.abs(placed.y - (box.y + 12)) < 2, `at the pointer (${placed.x}, ${placed.y})`);
   assert.equal(await page.evaluate(() => document.activeElement.textContent.trim()), 'Open');
+  // The release of the opening click, landing outside the menu, must not close it.
+  await page.mouse.move(box.x + 2, box.y + 2);
+  await page.evaluate(() => document.querySelector('context-menu .demo-box').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, button: 2 })));
+  await page.waitForTimeout(250);
+  assert.equal(await menu.isVisible(), true, 'still open after the click is released');
   assert.equal(await menu.getByRole('separator').count(), 1);
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowDown');
@@ -1408,6 +1413,11 @@ test('context-menu: opens where asked, by pointer or keyboard, and gives focus b
   await page.keyboard.press('Escape');
   await menu.waitFor({ state: 'hidden' });
   assert.equal(await target.evaluate((el) => el === document.activeElement), true, 'Escape gives focus back');
+  await page.mouse.click(box.x + 30, box.y + 12, { button: 'right' });
+  await menu.waitFor();
+  await page.mouse.click(5, 5);
+  await menu.waitFor({ state: 'hidden' });
+  assert.equal(await menu.isVisible(), false, 'a press outside closes it');
   await element.evaluate((el) => (el.disabled = true));
   assert.equal(await target.evaluate((el) => el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))), true, "disabled, the browser's own menu is left alone");
   assert.deepEqual(problems, []);

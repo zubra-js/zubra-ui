@@ -1,9 +1,9 @@
 <!--
   A menu of actions for whatever is inside it, opened where the visitor asked: a right click, a
   long press on a touch screen, or the keyboard's menu key (or Shift+F10) on something focused in
-  it. On the platform's `popover`, so Escape or a click outside closes it, and focus goes back to
-  where it was. Arrow keys, Home, End and typing a letter move among the items; Enter or Space
-  picks one. `items` is `[{ value, label, shortcut?, disabled?, danger? }]`, with
+  it. In the top layer (`popover`); Escape, a press outside, or scrolling the page closes it, and
+  focus goes back to where it was. Arrow keys, Home, End and typing a letter move among the
+  items; Enter or Space picks one. `items` is `[{ value, label, shortcut?, disabled?, danger? }]`, with
   `{ separator: true }` between groups. `disabled` leaves the browser's own menu alone.
   @slot - What the menu is for: a card, a row, a canvas.
   @fires menuopen - The menu opened; `detail` is the element it was opened on.
@@ -26,6 +26,9 @@
     const box = event.target.getBoundingClientRect()
     const keyboard = event.button < 0 || (event.clientX === 0 && event.clientY === 0)
     if (menu.matches(":popover-open")) menu.hidePopover()
+    // (A manual popover: the release of the click that opened an automatic one can count as a
+    // click outside it and close it again. This one closes on the next press outside, on Escape,
+    // when focus leaves, and when the page scrolls or the window loses focus.)
     menu.showPopover()
     place(keyboard ? box.left + 8 : event.clientX, keyboard ? box.bottom - 4 : event.clientY)
     menu.querySelector("[role=menuitem]:not(:disabled)")?.focus()
@@ -48,15 +51,35 @@
     back?.focus?.()
     emit("itemselect", item.value)
   }
+  const shut = () => menu.matches(":popover-open") && menu.hidePopover()
   // Tab out of the menu closes it, as menus do.
   function left(event) {
-    if (menu.matches(":popover-open") && !menu.contains(event.relatedTarget)) menu.hidePopover()
+    if (event.relatedTarget && !menu.contains(event.relatedTarget)) shut()
+  }
+  function escape(event) {
+    if (event.key !== "Escape" || !menu.matches(":popover-open")) return
+    event.preventDefault()
+    event.stopPropagation()
+    shut()
   }
 
   onMount(() => {
     const roving = rovingFocus(menu, { selector: "[role=menuitem]", orientation: "vertical" })
     const typing = typeahead(menu, { selector: "[role=menuitem]", text: (item) => item.querySelector(".context-label").textContent.trim() })
-    return () => { roving(); typing() }
+    const outside = (event) => { if (!menu.contains(event.target)) shut() }
+    document.addEventListener("pointerdown", outside, true)
+    const scrolled = (event) => { if (!menu.contains(event.target)) shut() }
+    document.addEventListener("scroll", scrolled, { capture: true, passive: true })
+    window.addEventListener("blur", shut)
+    window.addEventListener("resize", shut)
+    return () => {
+      roving()
+      typing()
+      document.removeEventListener("pointerdown", outside, true)
+      document.removeEventListener("scroll", scrolled, true)
+      window.removeEventListener("blur", shut)
+      window.removeEventListener("resize", shut)
+    }
   })
 </script>
 <style>
@@ -75,7 +98,7 @@
 </style>
 <context-menu label="Actions" items={[]} disabled={false}>
   <div class="context-area" oncontextmenu={asked}><zb-slot></zb-slot></div>
-  <div popover id={menuId} role="menu" aria-label={label} ref={menu} ontoggle={toggled} onfocusout={left}>
+  <div popover="manual" id={menuId} role="menu" aria-label={label} ref={menu} ontoggle={toggled} onfocusout={left} onkeydown={escape}>
     <zb-each items={items} as="item" index="i" key={item.value ?? `separator-${i}`}>
       <div zb-if={item.separator} role="separator"></div>
       <button zb-else type="button" role="menuitem" tabindex="-1" class:context-danger={Boolean(item.danger)} disabled={Boolean(item.disabled)} onclick={() => choose(item)}><span class="context-label">{item.label}</span><span zb-if={item.shortcut} class="context-shortcut" aria-hidden="true">{item.shortcut}</span></button>
